@@ -17,8 +17,29 @@ const gitBranch = process.env.GIT_BRANCH || getGitValue('git rev-parse --abbrev-
 const buildDate = process.env.BUILD_DATE || new Date().toISOString();
 const giphyApiKey = process.env.GIPHY_API_KEY || '';
 
+// read simple .env file fallback for NEW_RELIC_LICENSE_KEY
+function getEnvVarFromDotEnv(key) {
+  const envPath = path.join(__dirname, '..', '..', '.env');
+  if (!fs.existsSync(envPath)) return '';
+  const content = fs.readFileSync(envPath, 'utf8');
+  const lines = content.split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const idx = trimmed.indexOf('=');
+    if (idx === -1) continue;
+    const k = trimmed.slice(0, idx).trim();
+    const v = trimmed.slice(idx + 1).trim();
+    if (k === key) return v;
+  }
+  return '';
+}
+
+const newRelicLicenseKey = process.env.NEW_RELIC_LICENSE_KEY || getEnvVarFromDotEnv('NEW_RELIC_LICENSE_KEY') || '';
+
 const contents = `export const environment = {
   production: true,
+  newRelicLicenseKey: '${newRelicLicenseKey}',
   giphyApiKey: '${giphyApiKey}',
   gitSha: '${gitSha}',
   gitBranch: '${gitBranch}',
