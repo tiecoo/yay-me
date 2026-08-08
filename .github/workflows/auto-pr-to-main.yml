@@ -1,4 +1,4 @@
-name: Auto Create PR to main
+name: Auto PR to main
 
 on:
   push:
@@ -10,43 +10,45 @@ permissions:
   pull-requests: write
 
 jobs:
-  create_pr:
+  auto-pr:
+    if: github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          persist-credentials: true
-          ref: ${{ github.ref }}
           fetch-depth: 0
 
-      - name: Generate PR summary
-        id: pr_summary
+      - name: Gerar resumo das mudanças
         run: |
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          git fetch origin main
-          summary=$(git log --pretty=format:'- %s' origin/main..HEAD)
-          if [ -z "$summary" ]; then
-            summary="- No commit summary available."
-          fi
-          echo "PR_BODY<<EOF" >> $GITHUB_ENV
-          echo "This pull request was created automatically when a push occurred on branch \`${{ github.ref_name }}\`." >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          echo "Summary of changes included in this branch:" >> $GITHUB_ENV
-          echo "$summary" >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          echo "It keeps the branch up to date with \`main\` and enables review before merging." >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          BASE="origin/main"
 
-      - name: Create or update pull request to main
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'Auto PR to main from ${{ github.ref_name }}'
-          title: 'Auto PR: Merge ${{ github.ref_name }} into main'
-          body: ${{ env.PR_BODY }}
-          base: main
-          branch: ${{ github.ref_name }}
-          labels: automated-pr
-          update-existing: true
-          draft: false
+          {
+            echo "## Resumo das mudanças"
+            echo ""
+            echo "### Commits"
+            git log "$BASE"..HEAD --pretty=format:"- %s (%an)"
+            echo ""
+            echo ""
+            echo "### Arquivos alterados"
+            git diff --stat "$BASE"...HEAD
+          } > pr_body.md
+
+      - name: Criar ou atualizar PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+
+          EXISTING=$(gh pr list --base main --head "$BRANCH" --state open --json number --jq '.[0].number')
+
+          if [ -n "$EXISTING" ]; then
+            echo "PR #$EXISTING já existe, atualizando descrição..."
+            gh pr edit "$EXISTING" --body-file pr_body.md
+          else
+            gh pr create \
+              --base main \
+              --head "$BRANCH" \
+              --title "Auto PR: $BRANCH" \
+              --body-file pr_body.md
+          fi
