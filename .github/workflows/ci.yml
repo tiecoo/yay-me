@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+      - name: Set build metadata
+        run: |
+          echo "GIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_ENV
+          echo "BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> $GITHUB_ENV
+      - name: Build application
+        env:
+          GIPHY_API_KEY: ${{ secrets.GIPHY_API_KEY }}
+          GIT_SHA: ${{ env.GIT_SHA }}
+          GIT_BRANCH: ${{ env.GIT_BRANCH }}
+          BUILD_DATE: ${{ env.BUILD_DATE }}
+        run: npm run build:ci

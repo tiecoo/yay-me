@@ -5,7 +5,9 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --open",
-    "build": "ng build",
+    "build": "npm run generate-env && ng build --configuration=production",
+    "build:ci": "npm run generate-env && ng build --configuration=production",
+    "generate-env": "node scripts/generate-environment.js",
     "test": "ng test --watch=false",
     "lint": "ng lint"
   },
@@ -17,6 +19,7 @@
     "@angular/forms": "^17.3.12",
     "@angular/platform-browser": "^17.3.12",
     "@angular/platform-browser-dynamic": "^17.3.12",
+    "@angular/service-worker": "^17.3.12",
     "primeng": "^17.3.0",
     "primeicons": "^6.0.0",
     "rxjs": "^7.8.0",
