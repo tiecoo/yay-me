@@ -5,18 +5,25 @@ on:
     branches-ignore:
       - main
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   create_pr:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
           ref: ${{ github.ref }}
           fetch-depth: 0
 
       - name: Generate PR summary
         id: pr_summary
         run: |
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           git fetch origin main
           summary=$(git log --pretty=format:'- %s' origin/main..HEAD)
           if [ -z "$summary" ]; then
