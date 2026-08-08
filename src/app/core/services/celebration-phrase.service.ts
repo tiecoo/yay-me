@@ -4,7 +4,9 @@ import { catchError, map, Observable, of, timeout } from 'rxjs';
 import { MOTIVATIONAL_PHRASES } from './motivational-phrases';
 
 const CELEBRATE_PHRASE_ENDPOINT = '/.netlify/functions/celebrate-phrase';
-const REQUEST_TIMEOUT_MS = 5000;
+// Deve ficar acima do timeout interno da function (6000ms em celebrate-phrase.js),
+// senão o cliente desiste antes da function terminar e cai no fallback sempre.
+const REQUEST_TIMEOUT_MS = 8000;
 
 export interface CelebrationInsights {
   phrase: string;
