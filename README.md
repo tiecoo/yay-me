@@ -16,6 +16,8 @@ Projeto criado para aprender mais sobre IA e agentes.
 - `docs/sdd/`: Contém os documentos de design de software (Software Design Documents).
   - `0000-template.md`: Template padrão reutilizável para novos SDDs.
   - `0001-yay-me-arquitetura-inicial.md`: SDD oficial da arquitetura da aplicação (Angular, PrimeNG, Netlify, GIPHY).
+  - `0002-celebracao-com-ia.md`: SDD da frase de celebração gerada por IA (Claude + Netlify Function).
+- `netlify/functions/celebrate-phrase.js`: Netlify Function que gera a frase de celebração com Claude, mantendo a chave de API fora do bundle do cliente.
 - `AGENTS.md`: Diretrizes e convenções para desenvolvimento e agentes de IA.
 
 ## 🎨 UI / Design System
@@ -29,6 +31,23 @@ Projeto criado para aprender mais sobre IA e agentes.
   (evita apagar por engano).
 - Modal de celebração com animação de entrada, GIF, frase motivacional e
   CTA de fechamento claro para uso no celular.
+
+## 🤖 Frase de celebração com IA
+
+- Ao salvar uma conquista, o front-end chama a Netlify Function
+  `/.netlify/functions/celebrate-phrase`, que usa o **Claude (Anthropic,
+  modelo `claude-haiku-4-5-20251001`)** para gerar uma frase curta com
+  contexto do que foi digitado.
+- A chave `ANTHROPIC_API_KEY` fica **apenas no servidor** (variável de
+  ambiente do site no Netlify) — nunca é incluída no bundle publicado,
+  ao contrário da `GIPHY_API_KEY` que já é client-side hoje.
+- Se a chave não estiver configurada, a IA falhar ou demorar mais de 5s,
+  o app cai automaticamente na lista estática de frases já existente
+  (`motivational-phrases.ts`) — nenhuma funcionalidade fica bloqueada.
+- **Configuração necessária:** criar uma API key em
+  [console.anthropic.com](https://console.anthropic.com) e cadastrá-la
+  em **Netlify → Site settings → Environment variables** como
+  `ANTHROPIC_API_KEY`.
 
 ## 📐 Convenção para SDDs
 

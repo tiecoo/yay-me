@@ -3,8 +3,8 @@ import { Component } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { CelebrationPhraseService } from '../../../core/services/celebration-phrase.service';
 import { GifService } from '../../../core/services/gif.service';
-import { MOTIVATIONAL_PHRASES } from '../../../core/services/motivational-phrases';
 
 @Component({
   selector: 'app-celebration-modal',
@@ -24,7 +24,7 @@ import { MOTIVATIONAL_PHRASES } from '../../../core/services/motivational-phrase
       <div class="celebration-content">
         <span class="celebration-emoji" aria-hidden="true">🎉</span>
         <h2 class="celebration-title">Mandou bem!</h2>
-        <ng-container *ngIf="gifUrl; else loading">
+        <ng-container *ngIf="gifUrl && phrase; else loading">
           <img [src]="gifUrl" alt="GIF de celebração" class="celebration-gif" />
           <p class="celebration-phrase">{{ phrase }}</p>
         </ng-container>
@@ -77,26 +77,28 @@ import { MOTIVATIONAL_PHRASES } from '../../../core/services/motivational-phrase
 export class CelebrationModalComponent {
   public visible = false;
   public gifUrl: string | null = null;
-  public phrase = '';
+  public phrase: string | null = null;
 
-  constructor(private gifService: GifService) {}
+  constructor(
+    private gifService: GifService,
+    private celebrationPhraseService: CelebrationPhraseService
+  ) {}
 
-  public open(): void {
+  public open(achievementText: string): void {
     this.visible = true;
-    this.phrase = this.getRandomPhrase();
     this.gifUrl = null;
+    this.phrase = null;
 
     this.gifService.getRandomCelebrationGif().subscribe(url => {
       this.gifUrl = url;
+    });
+
+    this.celebrationPhraseService.getPhrase(achievementText).subscribe(phrase => {
+      this.phrase = phrase;
     });
   }
 
   public onClose(): void {
     this.visible = false;
-  }
-
-  private getRandomPhrase(): string {
-    const index = Math.floor(Math.random() * MOTIVATIONAL_PHRASES.length);
-    return MOTIVATIONAL_PHRASES[index];
   }
 }
