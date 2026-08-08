@@ -4,7 +4,9 @@ Projeto criado para aprender mais sobre IA e agentes.
 
 ## 📁 Estrutura do Repositório
 
-- `_bmad-output/planning-artifacts/prds/prd-yay-me-2026-08-08/`: Contém o PRD oficial do projeto (**prd.md** e **addendum.md**).
+- `_bmad-output/planning-artifacts/`:
+  - `prds/prd-yay-me-2026-08-08/`: Contém o PRD oficial (**prd.md** e **addendum.md**).
+  - `architecture/architecture-yay-me-2026-08-08/`: Contém a Arquitetura oficial do sistema (**ARCHITECTURE-SPINE.md**).
 - `docs/sdd/`: Contém os documentos de design de software (Software Design Documents).
   - `0000-template.md`: Template padrão reutilizável para novos SDDs.
   - `0001-yay-me-arquitetura-inicial.md`: SDD oficial da arquitetura da aplicação (Angular, PrimeNG, Netlify, GIPHY).
