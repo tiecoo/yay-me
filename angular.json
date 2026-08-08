@@ -1,0 +1,55 @@
+{
+  "$schema": "https://schemas.angular.io/angular-cli/fs/schema.json",
+  "version": 1,
+  "newProjectRoot": "",
+  "projects": {
+    "yay-me": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist/yay-me",
+            "index": "src/index.html",
+            "main": "src/main.ts",
+            "polyfills": "src/polyfills.ts",
+            "tsConfig": "tsconfig.app.json",
+            "assets": ["src/assets", "src/manifest.webmanifest"],
+            "styles": ["src/styles.css"],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.ci.ts"
+                }
+              ],
+              "serviceWorker": true,
+              "ngswConfigPath": "ngsw-config.json",
+              "optimization": true,
+              "outputHashing": "all",
+              "sourceMap": false,
+              "namedChunks": false,
+              "extractCss": true
+            }
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "browserTarget": "yay-me:build"
+          }
+        }
+      }
+    }
+  },
+  "defaultProject": "yay-me",
+  "cli": {
+    "analytics": "73382fd7-e010-4bdb-bc9f-ed628c43bc46"
+  }
+}

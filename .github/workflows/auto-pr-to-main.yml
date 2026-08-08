@@ -1,0 +1,54 @@
+name: Auto PR to main
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  auto-pr:
+    if: github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Gerar resumo das mudanças
+        run: |
+          BASE="origin/main"
+
+          {
+            echo "## Resumo das mudanças"
+            echo ""
+            echo "### Commits"
+            git log "$BASE"..HEAD --pretty=format:"- %s (%an)"
+            echo ""
+            echo ""
+            echo "### Arquivos alterados"
+            git diff --stat "$BASE"...HEAD
+          } > pr_body.md
+
+      - name: Criar ou atualizar PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+
+          EXISTING=$(gh pr list --base main --head "$BRANCH" --state open --json number --jq '.[0].number')
+
+          if [ -n "$EXISTING" ]; then
+            echo "PR #$EXISTING já existe, atualizando descrição..."
+            gh pr edit "$EXISTING" --body-file pr_body.md
+          else
+            gh pr create \
+              --base main \
+              --head "$BRANCH" \
+              --title "Auto PR: $BRANCH" \
+              --body-file pr_body.md
+          fi
