@@ -50,5 +50,6 @@ jobs:
               --base main \
               --head "$BRANCH" \
               --title "Auto PR: $BRANCH" \
-              --body-file pr_body.md
+              --body-file pr_body.md \
+              --reviewer "copilot-pull-request-reviewer[bot]"
           fi
