@@ -80,11 +80,11 @@ export class AppComponent {
   public onSaved(text: string): void {
     const achievement = this.achievementService.addAchievement(text);
     if (achievement) {
-      this.openModal();
+      this.openModal(text);
     }
   }
 
-  private openModal(): void {
-    this.celebrationModal?.open();
+  private openModal(achievementText: string): void {
+    this.celebrationModal?.open(achievementText);
   }
 }

@@ -16,6 +16,8 @@ Projeto criado para aprender mais sobre IA e agentes.
 - `docs/sdd/`: Contém os documentos de design de software (Software Design Documents).
   - `0000-template.md`: Template padrão reutilizável para novos SDDs.
   - `0001-yay-me-arquitetura-inicial.md`: SDD oficial da arquitetura da aplicação (Angular, PrimeNG, Netlify, GIPHY).
+  - `0002-celebracao-com-ia.md`: SDD da frase de celebração gerada por IA (Claude + Netlify Function).
+- `netlify/functions/celebrate-phrase.js`: Netlify Function que gera a frase de celebração com Claude, mantendo a chave de API fora do bundle do cliente.
 - `AGENTS.md`: Diretrizes e convenções para desenvolvimento e agentes de IA.
 
 ## 🎨 UI / Design System
@@ -29,6 +31,25 @@ Projeto criado para aprender mais sobre IA e agentes.
   (evita apagar por engano).
 - Modal de celebração com animação de entrada, GIF, frase motivacional e
   CTA de fechamento claro para uso no celular.
+
+## 🤖 Frase de celebração com IA
+
+- Ao salvar uma conquista, o front-end chama a Netlify Function
+  `/.netlify/functions/celebrate-phrase`, que usa o modelo gratuito
+  **`deepseek-ai/DeepSeek-V4-Flash-0731` (via provedor Novita)**, servido
+  pelo roteador de Inference Providers da Hugging Face
+  (`router.huggingface.co`, API compatível com OpenAI), para gerar uma
+  frase curta com contexto do que foi digitado.
+- O token `HF_TOKEN` fica **apenas no servidor** (variável de ambiente do
+  site no Netlify) — nunca é incluído no bundle publicado, ao contrário
+  da `GIPHY_API_KEY` que já é client-side hoje.
+- Se o token não estiver configurado, a IA falhar ou demorar mais de 5s,
+  o app cai automaticamente na lista estática de frases já existente
+  (`motivational-phrases.ts`) — nenhuma funcionalidade fica bloqueada.
+- **Configuração necessária:** criar um token em
+  [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
+  e cadastrá-lo em **Netlify → Site settings → Environment variables**
+  como `HF_TOKEN`.
 
 ## 📐 Convenção para SDDs
 
