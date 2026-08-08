@@ -1,5 +1,7 @@
 # yay-me
 
+[![Netlify Status](https://api.netlify.com/api/v1/badges/0d8b9204-a595-46a0-a30c-042d7cf0bf49/deploy-status?branch=main)](https://app.netlify.com/projects/yay-me/deploys)
+
 Projeto criado para aprender mais sobre IA e agentes.
 
 ## 📁 Estrutura do Repositório
