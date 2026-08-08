@@ -56,12 +56,16 @@ graph TD
   `https://router.huggingface.co/v1/chat/completions` (formato chat
   completions compatível com OpenAI) com
   `model: 'deepseek-ai/DeepSeek-V4-Flash-0731:novita'` e um `system
-  prompt` curto, e devolve `{ phrase }`. A mensagem do usuário enviada ao
-  modelo sempre começa com um prefixo de contexto fixo ("Isso é para
-  apoiar e animar a pessoa que registrou essa conquista pessoal — a
-  conquista descrita é: ...") antes do texto da conquista — reforça a
-  intenção diretamente no turno do usuário, além do `system prompt`,
-  já que modelos pequenos/gratuitos tendem a seguir menos fielmente
+  prompt` curto, e devolve `{ phrase }`. O `system prompt` pede
+  explicitamente uma piadinha leve e específica sobre algum detalhe
+  concreto da conquista (não uma frase genérica), sempre carinhosa e
+  nunca sarcástica. A mensagem do usuário enviada ao modelo sempre
+  começa com um prefixo de contexto fixo ("Isso é para apoiar e animar
+  a pessoa... faça uma piadinha bem-humorada e específica sobre o que
+  ela descreveu... A conquista descrita é: ...") antes do texto da
+  conquista — reforça a intenção diretamente no turno do usuário, além
+  do `system prompt`, já que modelos pequenos/gratuitos tendem a seguir
+  menos fielmente
   instruções apenas no `system`. Timeout interno de 6s via
   `AbortController`. Qualquer erro (token ausente, timeout, resposta
   vazia, erro HTTP) retorna `{ phrase: null }` com status 200 — nunca

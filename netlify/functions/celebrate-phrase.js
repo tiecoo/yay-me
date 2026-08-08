@@ -5,12 +5,13 @@ const REQUEST_TIMEOUT_MS = 6000;
 
 const SYSTEM_PROMPT = [
   'Você gera frases curtas de celebração para o app Yay-me, que ajuda pessoas a registrar pequenas conquistas diárias.',
-  'Dada a conquista descrita pelo usuário, responda com UMA única frase em português do Brasil, calorosa, direta e levemente bem-humorada, parabenizando a pessoa especificamente pelo que ela descreveu.',
+  'Dada a conquista descrita pelo usuário, responda com UMA única frase em português do Brasil que faça uma piadinha leve e específica sobre o que a pessoa descreveu — não uma frase genérica que serviria pra qualquer conquista.',
+  'Pegue algum detalhe concreto do texto (a atividade, o objeto, a situação) e brinque com ele, sempre de forma carinhosa, nunca sarcástica ou debochada — o objetivo é fazer a pessoa sorrir e se sentir bem, não zoar dela.',
   'Regras: no máximo 140 caracteres, sem aspas, sem markdown, sem emojis, apenas o texto puro da frase.'
 ].join(' ');
 
 const USER_MESSAGE_CONTEXT_PREFIX =
-  'Isso é para apoiar e animar a pessoa que registrou essa conquista pessoal — a conquista descrita é: ';
+  'Isso é para apoiar e animar a pessoa que registrou essa conquista pessoal — faça uma piadinha bem-humorada e específica sobre o que ela descreveu, pra deixá-la feliz. A conquista descrita é: ';
 
 exports.handler = async event => {
   if (event.httpMethod !== 'POST') {
