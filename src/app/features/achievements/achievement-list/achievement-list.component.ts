@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { AchievementService } from '../../../core/services/achievement.service';
 import { Observable } from 'rxjs';
@@ -11,50 +10,139 @@ interface GroupedAchievements {
   items: Achievement[];
 }
 
+const CONFIRM_TIMEOUT_MS = 3000;
+
 @Component({
   selector: 'app-achievement-list',
   standalone: true,
-  imports: [CommonModule, CardModule, ButtonModule],
+  imports: [CommonModule, ButtonModule],
   template: `
     <ng-container *ngIf="achievements$ | async as achievements">
       <ng-container *ngIf="achievements.length; else emptyState">
         <div *ngFor="let group of grouped(achievements)" class="group">
-          <h3>{{ group.date }}</h3>
+          <h3 class="group-title">{{ group.date }}</h3>
           <div class="cards">
-            <p-card *ngFor="let item of group.items" class="achievement-card">
-              <ng-template pTemplate="title">
-                {{ item.createdAt | date: 'shortTime' }}
-              </ng-template>
-              <p>{{ item.text }}</p>
-              <button pButton type="button" label="Excluir" class="p-button-text" (click)="delete(item.id)"></button>
-            </p-card>
+            <article *ngFor="let item of group.items" class="achievement-card">
+              <div class="card-body">
+                <span class="time-chip"><i class="pi pi-clock"></i>{{ item.createdAt | date: 'shortTime' }}</span>
+                <p class="achievement-text">{{ item.text }}</p>
+              </div>
+              <button
+                pButton
+                type="button"
+                [attr.aria-label]="pendingDeleteId === item.id ? 'Confirmar exclusão' : 'Excluir conquista'"
+                [icon]="pendingDeleteId === item.id ? 'pi pi-check' : 'pi pi-trash'"
+                [label]="pendingDeleteId === item.id ? 'Confirmar' : undefined"
+                class="delete-button"
+                [class.delete-button--confirming]="pendingDeleteId === item.id"
+                (click)="onDeleteClick(item.id)"
+              ></button>
+            </article>
           </div>
         </div>
       </ng-container>
       <ng-template #emptyState>
         <div class="empty-state">
-          <p>Você ainda não registrou nenhuma conquista.</p>
-          <p>Use o formulário acima para começar.</p>
+          <span class="empty-emoji" aria-hidden="true">🌱</span>
+          <p class="empty-title">Sua jornada começa aqui.</p>
+          <p class="empty-subtitle">Registre a primeira conquista do dia acima — pode ser pequena, ela ainda conta.</p>
         </div>
       </ng-template>
     </ng-container>
   `,
   styles: [
-    ".group { margin-bottom: 1.5rem; }",
-    ".cards { display: grid; gap: 1rem; }",
-    ".achievement-card { width: 100%; }",
-    ".empty-state { padding: 2rem; border: 1px dashed #ccc; border-radius: 1rem; text-align: center; color: #666; }"
+    `
+    .group { display: grid; gap: var(--space-3); }
+    .group-title {
+      display: inline-flex;
+      align-self: flex-start;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      text-transform: capitalize;
+      color: var(--color-primary-dark);
+      background: var(--color-primary-soft);
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-full);
+    }
+    .cards { display: grid; gap: var(--space-3); }
+    .achievement-card {
+      width: 100%;
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      padding: var(--space-4);
+      transition: box-shadow 0.15s ease;
+    }
+    .achievement-card:hover { box-shadow: var(--shadow-md); }
+    .card-body { flex: 1; min-width: 0; display: grid; gap: var(--space-2); }
+    .time-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      align-self: flex-start;
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+    .achievement-text { margin: 0; color: var(--color-text); line-height: 1.5; word-break: break-word; }
+    .delete-button {
+      flex-shrink: 0;
+      color: var(--color-text-muted) !important;
+      background: transparent !important;
+      border: none !important;
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+    .delete-button--confirming {
+      width: auto !important;
+      color: var(--color-danger) !important;
+      background: var(--color-danger-soft) !important;
+      padding: 0 var(--space-3) !important;
+    }
+    .empty-state {
+      display: grid;
+      justify-items: center;
+      gap: var(--space-2);
+      padding: var(--space-6) var(--space-4);
+      border: 1px dashed var(--color-border);
+      border-radius: var(--radius-lg);
+      text-align: center;
+      background: var(--color-surface);
+    }
+    .empty-emoji { font-size: 2.5rem; }
+    .empty-title { font-weight: 600; color: var(--color-text); }
+    .empty-subtitle { color: var(--color-text-muted); font-size: 0.9375rem; max-width: 32ch; }
+    `
   ]
 })
 export class AchievementListComponent {
   public achievements$: Observable<Achievement[]>;
+  public pendingDeleteId: string | null = null;
+  private confirmTimer?: ReturnType<typeof setTimeout>;
 
   constructor(private achievementService: AchievementService) {
     this.achievements$ = this.achievementService.achievements$;
   }
 
-  public delete(id: string): void {
-    this.achievementService.deleteAchievement(id);
+  public onDeleteClick(id: string): void {
+    if (this.pendingDeleteId === id) {
+      this.clearPendingDelete();
+      this.achievementService.deleteAchievement(id);
+      return;
+    }
+
+    this.clearPendingDelete();
+    this.pendingDeleteId = id;
+    this.confirmTimer = setTimeout(() => this.clearPendingDelete(), CONFIRM_TIMEOUT_MS);
+  }
+
+  private clearPendingDelete(): void {
+    if (this.confirmTimer) {
+      clearTimeout(this.confirmTimer);
+    }
+    this.pendingDeleteId = null;
   }
 
   public grouped(items: Achievement[]): GroupedAchievements[] {
