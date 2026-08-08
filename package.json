@@ -5,7 +5,6 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --open",
-    "start:newrelic": "NEW_RELIC_AI_MONITORING_ENABLED=true NEW_RELIC_CUSTOM_INSIGHTS_EVENTS_MAX_SAMPLES_STORED=100k NEW_RELIC_SPAN_EVENTS_MAX_SAMPLES_STORED=10k NEW_RELIC_APP_NAME=yay-me NEW_RELIC_LICENSE_KEY=3e82ec8765aef72859d838f4ca92d1042d5bNRAL node --experimental-loader=newrelic/esm-loader.mjs YOUR_MAIN_FILENAME.js",
     "build": "npm run generate-env && ng build --configuration=production",
     "build:ci": "npm run generate-env && ng build --configuration=production",
     "generate-env": "node scripts/generate-environment.js",
@@ -21,7 +20,7 @@
     "@angular/platform-browser": "^17.3.12",
     "@angular/platform-browser-dynamic": "^17.3.12",
     "@angular/service-worker": "^17.3.12",
-    "newrelic": "^14.3.6",
+    
     "primeicons": "^6.0.0",
     "primeng": "^17.3.0",
     "rxjs": "^7.8.0",
