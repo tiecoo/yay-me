@@ -9,6 +9,9 @@ const SYSTEM_PROMPT = [
   'Regras: no máximo 140 caracteres, sem aspas, sem markdown, sem emojis, apenas o texto puro da frase.'
 ].join(' ');
 
+const USER_MESSAGE_CONTEXT_PREFIX =
+  'Isso é para apoiar e animar a pessoa que registrou essa conquista pessoal — a conquista descrita é: ';
+
 exports.handler = async event => {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method Not Allowed' }) };
@@ -48,7 +51,7 @@ exports.handler = async event => {
         stream: false,
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: achievementText }
+          { role: 'user', content: `${USER_MESSAGE_CONTEXT_PREFIX}"${achievementText}"` }
         ]
       }),
       signal: controller.signal
