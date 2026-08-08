@@ -1,4 +1,4 @@
-# SDD-0002: Frase de Celebração Gerada por IA
+# SDD-0002: Frase e Tags de Celebração Geradas por IA
 
 * **Autor:** Claude (agente de IA)
 * **Data:** 2026-08-08
@@ -11,27 +11,35 @@
 Hoje, ao salvar uma conquista, o `CelebrationModalComponent` escolhe uma
 frase aleatória de uma lista estática de 8 frases fixas
 (`motivational-phrases.ts`) — a frase nunca tem relação com o que a
-pessoa efetivamente escreveu. O objetivo desta mudança é gerar, na hora,
-uma frase de celebração com contexto real da conquista digitada, usando
-o modelo **`deepseek-ai/DeepSeek-V4-Flash-0731`**, servido de graça pelo
-provedor **Novita** através do roteador de Inference Providers da
-Hugging Face (`router.huggingface.co`, API compatível com o formato de
-chat completions da OpenAI) — escolha do usuário por ser um modelo sem
-custo.
+pessoa efetivamente escreveu, e não há nenhuma categorização das
+conquistas na lista. O objetivo desta mudança é gerar, na hora, numa
+única chamada de IA: (1) uma frase de celebração com contexto real da
+conquista digitada (incluindo uma piadinha específica sobre o que foi
+descrito) e (2) até 3 tags curtas que categorizam a conquista, exibidas
+como chips no card da lista. Usa o modelo
+**`deepseek-ai/DeepSeek-V4-Flash-0731`**, servido de graça pelo provedor
+**Novita** através do roteador de Inference Providers da Hugging Face
+(`router.huggingface.co`, API compatível com o formato de chat
+completions da OpenAI) — escolha do usuário por ser um modelo sem custo.
 
 ## 2. Objetivos e Não-Objetivos (Goals & Non-Goals)
 - **Objetivos (Goals):**
-  - Gerar uma frase curta e personalizada com base no texto da conquista.
-  - Manter a chave de API da IA fora do bundle do cliente (diferente do
+  - Gerar uma frase curta e personalizada (com piadinha específica) e até
+    3 tags de categorização, numa única chamada de IA por conquista.
+  - Manter o token de API da IA fora do bundle do cliente (diferente do
     padrão hoje usado pela `GIPHY_API_KEY`).
-  - Nunca bloquear o fluxo principal: se a IA falhar, estiver lenta ou
-    sem chave configurada, o app cai de volta na lista estática atual.
+  - Nunca bloquear o fluxo principal: se a IA falhar, estiver lenta,
+    sem token configurado, ou devolver algo que não seja JSON válido, o
+    app cai de volta na lista estática de frases e a conquista fica sem
+    tags — sem travar o salvamento nem o modal.
 - **Não-Objetivos (Non-Goals):**
   - Não altera o fluxo do GIF de celebração (`GifService` continua igual).
   - Não introduz histórico/conversa com a IA — é uma chamada única e sem
     estado por conquista salva.
   - Não persiste o texto enviado à IA em nenhum lugar (nem client, nem
     function, nem logs aplicacionais).
+  - Não oferece edição manual de tags nem filtro da lista por tag nesta
+    entrega — são só exibidas como metadado no card.
 
 ## 3. Arquitetura Proposta
 
@@ -39,49 +47,74 @@ custo.
 graph TD
     User([Usuário]) -->|digita conquista| Form[AchievementFormComponent]
     Form -->|saved(text)| App[AppComponent]
-    App -->|open(text)| Modal[CelebrationModalComponent]
-    Modal -->|getPhrase(text)| PhraseService[CelebrationPhraseService]
+    App -->|addAchievement salva localmente| Storage[(localStorage)]
+    App -->|open(id, text)| Modal[CelebrationModalComponent]
+    Modal -->|getCelebrationInsights(text)| PhraseService[CelebrationPhraseService]
     PhraseService -->|POST /.netlify/functions/celebrate-phrase| Function[Netlify Function]
     Function -->|Bearer HF_TOKEN server-side| HF[HF Router - DeepSeek V4 Flash via Novita]
-    HF -->|frase gerada| Function
-    Function -->|"{ phrase }"| PhraseService
-    PhraseService -->|timeout/erro| Fallback[Lista estática local]
+    HF -->|"JSON { phrase, tags }"| Function
+    Function -->|"{ phrase, tags }"| PhraseService
+    PhraseService -->|timeout/erro| Fallback[Frase estática local + tags vazias]
+    PhraseService -->|tags| ModalTags[Modal chama AchievementService.updateTags]
+    ModalTags -->|patch tags| Storage
+    Storage -->|achievements$| List[AchievementListComponent - chips de tag]
 ```
 
 ## 4. Especificação Técnica
 
 ### Componentes e Arquivos
-- `netlify/functions/celebrate-phrase.js` (novo): Netlify Function
+- `netlify/functions/celebrate-phrase.js`: Netlify Function
   (`exports.handler`) que recebe `{ text }`, chama
   `https://router.huggingface.co/v1/chat/completions` (formato chat
   completions compatível com OpenAI) com
   `model: 'deepseek-ai/DeepSeek-V4-Flash-0731:novita'` e um `system
-  prompt` curto, e devolve `{ phrase }`. O `system prompt` pede
-  explicitamente uma piadinha leve e específica sobre algum detalhe
-  concreto da conquista (não uma frase genérica), sempre carinhosa e
-  nunca sarcástica. A mensagem do usuário enviada ao modelo sempre
-  começa com um prefixo de contexto fixo ("Isso é para apoiar e animar
-  a pessoa... faça uma piadinha bem-humorada e específica sobre o que
-  ela descreveu... A conquista descrita é: ...") antes do texto da
-  conquista — reforça a intenção diretamente no turno do usuário, além
-  do `system prompt`, já que modelos pequenos/gratuitos tendem a seguir
-  menos fielmente
-  instruções apenas no `system`. Timeout interno de 6s via
-  `AbortController`. Qualquer erro (token ausente, timeout, resposta
-  vazia, erro HTTP) retorna `{ phrase: null }` com status 200 — nunca
-  propaga erro 5xx para o cliente.
-- `netlify.toml` (novo): declara `build.command`, `build.publish` e
+  prompt` pedindo duas coisas na mesma resposta: uma frase com piadinha
+  específica sobre a conquista (nunca sarcástica) e até 3 tags curtas de
+  categorização — em **JSON estrito**
+  (`{"phrase": "...", "tags": ["...", "..."]}`). A mensagem do usuário
+  enviada ao modelo sempre começa com um prefixo de contexto fixo ("Isso
+  é para apoiar e animar a pessoa... faça uma piadinha bem-humorada e
+  específica... categorize com tags curtas... A conquista descrita é:
+  ...") — reforça a intenção diretamente no turno do usuário, além do
+  `system prompt`, já que modelos pequenos/gratuitos tendem a seguir
+  menos fielmente instruções apenas no `system`.
+  - `parseModelJson`/`extractResult`: parsing tolerante da resposta —
+    tenta `JSON.parse` direto, remove blocos de code fence
+    (` ```json…``` `) se existirem, e por fim extrai o primeiro trecho
+    `{...}` da string via regex antes de tentar de novo. `tags` é
+    validado como array de strings, normalizado (`trim`, `toLowerCase`,
+    até 24 caracteres) e limitado a 3 itens; `phrase` é limitado a 140
+    caracteres. Se o parsing falhar ou `phrase` vier vazio, retorna
+    `{ phrase: null, tags: [] }` — nunca lança exceção pro cliente.
+  - Timeout interno de 6s via `AbortController`. Qualquer erro (token
+    ausente, timeout, resposta vazia/inválida, erro HTTP) retorna
+    `{ phrase: null, tags: [] }` com status 200 — nunca propaga erro 5xx.
+- `netlify.toml`: declara `build.command`, `build.publish` e
   `functions.directory = "netlify/functions"`.
-- `src/app/core/services/celebration-phrase.service.ts` (novo): serviço
-  Angular que chama a function via `HttpClient`, com `timeout(5000)` e
-  `catchError`, caindo para `MOTIVATIONAL_PHRASES` em qualquer falha —
-  mesmo padrão de resiliência já usado pelo `GifService`.
-- `celebration-modal.component.ts`: `open()` passa a receber
-  `achievementText: string`; dispara `GifService` e
-  `CelebrationPhraseService` em paralelo; o loading do modal aguarda
-  ambos (`*ngIf="gifUrl && phrase"`).
-- `app.component.ts`: `onSaved(text)` repassa o texto para
-  `openModal(text)`.
+- `src/app/core/services/celebration-phrase.service.ts`: expõe
+  `getCelebrationInsights(text): Observable<{ phrase, tags }>`, chamando
+  a function via `HttpClient` com `timeout(5000)` e `catchError`,
+  caindo para `{ phrase: <sorteio de MOTIVATIONAL_PHRASES>, tags: [] }`
+  em qualquer falha — mesmo padrão de resiliência já usado pelo
+  `GifService`.
+- `src/app/shared/models/achievement.model.ts`: `Achievement` ganha
+  `tags?: string[]`.
+- `src/app/core/services/achievement.service.ts`: novo
+  `updateTags(id, tags)` — faz um patch imutável no item pelo `id` e
+  persiste; no-op se `tags` vier vazio (evita escrita desnecessária no
+  `localStorage` quando a IA não retornou tags).
+- `celebration-modal.component.ts`: `open(achievementId, achievementText)`
+  passa a receber também o `id` da conquista já salva; dispara
+  `GifService` e `CelebrationPhraseService` em paralelo; ao resolver a
+  frase, chama `AchievementService.updateTags(achievementId, tags)` para
+  "enriquecer" a conquista já persistida assim que as tags chegam. O
+  loading do modal aguarda GIF + frase (`*ngIf="gifUrl && phrase"`) — as
+  tags chegam de forma independente e não bloqueiam o modal.
+- `app.component.ts`: `onSaved(text)` salva a conquista primeiro (fica
+  visível na lista imediatamente, sem esperar IA) e abre o modal
+  passando `achievement.id` e `achievement.text`.
+- `achievement-list.component.ts`: cada card renderiza `item.tags` (se
+  houver) como chips (`pill`), no mesmo estilo visual do resto do app.
 
 ### Interfaces e Contratos
 - Request (cliente → function): `POST /.netlify/functions/celebrate-phrase`
@@ -91,11 +124,11 @@ graph TD
 - Response (function → cliente): sempre HTTP 200 no caminho feliz e no
   caminho de fallback controlado.
   ```json
-  { "phrase": "Relatório chato zerado — mais um obstáculo pra trás!" }
+  { "phrase": "Relatório chato zerado — mais um obstáculo pra trás!", "tags": ["trabalho", "produtividade"] }
   ```
-  ou, quando não há chave/erro/timeout:
+  ou, quando não há token/erro/timeout/JSON inválido:
   ```json
-  { "phrase": null }
+  { "phrase": null, "tags": [] }
   ```
 - Segredo: `HF_TOKEN` — variável de ambiente do **site no Netlify** (Site
   settings → Environment variables), lida apenas em runtime da function.
@@ -124,7 +157,11 @@ graph TD
   pelo Netlify).
 - Teste unitário manual do handler da function via Node (`require` +
   chamada direta), cobrindo: método não permitido, JSON inválido, texto
-  vazio e token ausente (retorna `phrase: null`).
+  vazio e token ausente (retorna `{ phrase: null, tags: [] }`).
+- `extractResult`/`parseModelJson` testados isoladamente com JSON limpo,
+  JSON envolto em code fence, JSON com prosa antes/depois, texto não-JSON
+  e string vazia — todos os casos extraem corretamente `phrase`/`tags`
+  quando possível ou caem no resultado vazio sem lançar exceção.
 - Payload e parsing de resposta validados contra o exemplo de código
   oficial (`curl`) mostrado na página do modelo na Hugging Face — não foi
   possível fazer uma chamada real de ponta a ponta durante o
@@ -134,11 +171,15 @@ graph TD
   validação completa de conectividade real deve ser feita após configurar
   o `HF_TOKEN` no Netlify.
 - Teste end-to-end via Playwright: submeter uma conquista e verificar que
-  o modal abre, aguarda o carregamento e, na ausência da function
-  (ambiente local sem `netlify dev`), cai corretamente na frase estática
-  — sem travar o modal nem lançar erro para o usuário.
+  ela aparece imediatamente na lista (sem tags), o modal abre, aguarda o
+  carregamento e, na ausência da function (ambiente local sem
+  `netlify dev`), cai corretamente na frase estática sem travar — e sem
+  tags no card (comportamento esperado do fallback). Também validado
+  visualmente o estilo dos chips de tag com dados semeados no
+  `localStorage` simulando uma resposta de IA com tags.
 - Após configurar `HF_TOKEN` no Netlify, validar em produção que a frase
-  exibida referencia o texto da conquista digitada.
+  exibida referencia o texto da conquista digitada e que as tags
+  aparecem no card pouco depois de fechar o modal.
 
 ## 7. Riscos e Questões Abertas
 - [x] Enviar o texto da conquista para uma API externa é uma exceção

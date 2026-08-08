@@ -54,4 +54,13 @@ export class AchievementService {
     }
     this.saveAchievements(nextState);
   }
+
+  public updateTags(id: string, tags: string[]): void {
+    if (!tags.length) {
+      return;
+    }
+
+    const nextState = this.achievementsSubject.value.map(item => (item.id === id ? { ...item, tags } : item));
+    this.saveAchievements(nextState);
+  }
 }

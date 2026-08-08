@@ -26,6 +26,9 @@ const CONFIRM_TIMEOUT_MS = 3000;
               <div class="card-body">
                 <span class="time-chip"><i class="pi pi-clock"></i>{{ item.createdAt | date: 'shortTime' }}</span>
                 <p class="achievement-text">{{ item.text }}</p>
+                <div class="tags" *ngIf="item.tags?.length">
+                  <span class="tag" *ngFor="let tag of item.tags">{{ tag }}</span>
+                </div>
               </div>
               <button
                 pButton
@@ -87,6 +90,15 @@ const CONFIRM_TIMEOUT_MS = 3000;
       color: var(--color-text-muted);
     }
     .achievement-text { margin: 0; color: var(--color-text); line-height: 1.5; word-break: break-word; }
+    .tags { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+    .tag {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--color-primary-dark);
+      background: var(--color-primary-soft);
+      padding: 0.125rem var(--space-2);
+      border-radius: var(--radius-full);
+    }
     .delete-button {
       flex-shrink: 0;
       color: var(--color-text-muted) !important;

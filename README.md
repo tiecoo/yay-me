@@ -38,14 +38,17 @@ Projeto criado para aprender mais sobre IA e agentes.
   `/.netlify/functions/celebrate-phrase`, que usa o modelo gratuito
   **`deepseek-ai/DeepSeek-V4-Flash-0731` (via provedor Novita)**, servido
   pelo roteador de Inference Providers da Hugging Face
-  (`router.huggingface.co`, API compatível com OpenAI), para gerar uma
-  frase curta com contexto do que foi digitado.
+  (`router.huggingface.co`, API compatível com OpenAI), para gerar em uma
+  única chamada: (1) uma frase curta com uma piadinha específica sobre o
+  que foi digitado, e (2) até 3 tags que categorizam a conquista (ex.:
+  `trabalho`, `saúde`, `família`), exibidas como chips no card da lista.
 - O token `HF_TOKEN` fica **apenas no servidor** (variável de ambiente do
   site no Netlify) — nunca é incluído no bundle publicado, ao contrário
   da `GIPHY_API_KEY` que já é client-side hoje.
 - Se o token não estiver configurado, a IA falhar ou demorar mais de 5s,
   o app cai automaticamente na lista estática de frases já existente
-  (`motivational-phrases.ts`) — nenhuma funcionalidade fica bloqueada.
+  (`motivational-phrases.ts`) e a conquista fica sem tags — nenhuma
+  funcionalidade fica bloqueada.
 - **Configuração necessária:** criar um token em
   [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
   e cadastrá-lo em **Netlify → Site settings → Environment variables**

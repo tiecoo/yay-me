@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { AchievementService } from '../../../core/services/achievement.service';
 import { CelebrationPhraseService } from '../../../core/services/celebration-phrase.service';
 import { GifService } from '../../../core/services/gif.service';
 
@@ -81,10 +82,11 @@ export class CelebrationModalComponent {
 
   constructor(
     private gifService: GifService,
-    private celebrationPhraseService: CelebrationPhraseService
+    private celebrationPhraseService: CelebrationPhraseService,
+    private achievementService: AchievementService
   ) {}
 
-  public open(achievementText: string): void {
+  public open(achievementId: string, achievementText: string): void {
     this.visible = true;
     this.gifUrl = null;
     this.phrase = null;
@@ -93,8 +95,9 @@ export class CelebrationModalComponent {
       this.gifUrl = url;
     });
 
-    this.celebrationPhraseService.getPhrase(achievementText).subscribe(phrase => {
+    this.celebrationPhraseService.getCelebrationInsights(achievementText).subscribe(({ phrase, tags }) => {
       this.phrase = phrase;
+      this.achievementService.updateTags(achievementId, tags);
     });
   }
 
