@@ -1,0 +1,45 @@
+name: Auto Create PR to main
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+jobs:
+  create_pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+
+      - name: Generate PR summary
+        id: pr_summary
+        run: |
+          git fetch origin main
+          summary=$(git log --pretty=format:'- %s' origin/main..HEAD)
+          if [ -z "$summary" ]; then
+            summary="- No commit summary available."
+          fi
+          echo "PR_BODY<<EOF" >> $GITHUB_ENV
+          echo "This pull request was created automatically when a push occurred on branch \`${{ github.ref_name }}\`." >> $GITHUB_ENV
+          echo "" >> $GITHUB_ENV
+          echo "Summary of changes included in this branch:" >> $GITHUB_ENV
+          echo "$summary" >> $GITHUB_ENV
+          echo "" >> $GITHUB_ENV
+          echo "It keeps the branch up to date with \`main\` and enables review before merging." >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create or update pull request to main
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'Auto PR to main from ${{ github.ref_name }}'
+          title: 'Auto PR: Merge ${{ github.ref_name }} into main'
+          body: ${{ env.PR_BODY }}
+          base: main
+          branch: ${{ github.ref_name }}
+          labels: automated-pr
+          update-existing: true
+          draft: false
