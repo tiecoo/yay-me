@@ -7,6 +7,15 @@
     <meta name="theme-color" content="#4f46e5" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+    <!-- New Relic SPA agent: reads license from window.__NR_LICENSE__ (set in main.ts) -->
+    <script>
+      window.NREUM = window.NREUM || {};
+      window.NREUM.info = window.NREUM.info || {};
+      // licenseKey will be filled from window.__NR_LICENSE__ at runtime
+      window.NREUM.info.licenseKey = window.__NR_LICENSE__ || '';
+    </script>
+    <script defer src="https://js-agent.newrelic.com/nr-spa-1211.min.js"></script>
   </head>
   <body>
     <app-root></app-root>
