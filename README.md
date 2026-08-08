@@ -35,19 +35,21 @@ Projeto criado para aprender mais sobre IA e agentes.
 ## 🤖 Frase de celebração com IA
 
 - Ao salvar uma conquista, o front-end chama a Netlify Function
-  `/.netlify/functions/celebrate-phrase`, que usa o **Claude (Anthropic,
-  modelo `claude-haiku-4-5-20251001`)** para gerar uma frase curta com
-  contexto do que foi digitado.
-- A chave `ANTHROPIC_API_KEY` fica **apenas no servidor** (variável de
-  ambiente do site no Netlify) — nunca é incluída no bundle publicado,
-  ao contrário da `GIPHY_API_KEY` que já é client-side hoje.
-- Se a chave não estiver configurada, a IA falhar ou demorar mais de 5s,
+  `/.netlify/functions/celebrate-phrase`, que usa o modelo gratuito
+  **`deepseek-ai/DeepSeek-V4-Flash-0731` (via provedor Novita)**, servido
+  pelo roteador de Inference Providers da Hugging Face
+  (`router.huggingface.co`, API compatível com OpenAI), para gerar uma
+  frase curta com contexto do que foi digitado.
+- O token `HF_TOKEN` fica **apenas no servidor** (variável de ambiente do
+  site no Netlify) — nunca é incluído no bundle publicado, ao contrário
+  da `GIPHY_API_KEY` que já é client-side hoje.
+- Se o token não estiver configurado, a IA falhar ou demorar mais de 5s,
   o app cai automaticamente na lista estática de frases já existente
   (`motivational-phrases.ts`) — nenhuma funcionalidade fica bloqueada.
-- **Configuração necessária:** criar uma API key em
-  [console.anthropic.com](https://console.anthropic.com) e cadastrá-la
-  em **Netlify → Site settings → Environment variables** como
-  `ANTHROPIC_API_KEY`.
+- **Configuração necessária:** criar um token em
+  [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
+  e cadastrá-lo em **Netlify → Site settings → Environment variables**
+  como `HF_TOKEN`.
 
 ## 📐 Convenção para SDDs
 

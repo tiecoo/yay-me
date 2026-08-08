@@ -1,6 +1,5 @@
-const ANTHROPIC_ENDPOINT = 'https://api.anthropic.com/v1/messages';
-const ANTHROPIC_VERSION = '2023-06-01';
-const MODEL = 'claude-haiku-4-5-20251001';
+const HF_ROUTER_ENDPOINT = 'https://router.huggingface.co/v1/chat/completions';
+const MODEL = 'deepseek-ai/DeepSeek-V4-Flash-0731:novita';
 const MAX_TEXT_LENGTH = 280;
 const REQUEST_TIMEOUT_MS = 6000;
 
@@ -28,8 +27,8 @@ exports.handler = async event => {
 
   const achievementText = text.trim().slice(0, MAX_TEXT_LENGTH);
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
+  const hfToken = process.env.HF_TOKEN;
+  if (!hfToken) {
     return { statusCode: 200, body: JSON.stringify({ phrase: null }) };
   }
 
@@ -37,18 +36,20 @@ exports.handler = async event => {
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
-    const response = await fetch(ANTHROPIC_ENDPOINT, {
+    const response = await fetch(HF_ROUTER_ENDPOINT, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': ANTHROPIC_VERSION
+        authorization: `Bearer ${hfToken}`
       },
       body: JSON.stringify({
         model: MODEL,
         max_tokens: 80,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: achievementText }]
+        stream: false,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: achievementText }
+        ]
       }),
       signal: controller.signal
     });
@@ -58,7 +59,7 @@ exports.handler = async event => {
     }
 
     const data = await response.json();
-    const phrase = data?.content?.[0]?.text?.trim();
+    const phrase = data?.choices?.[0]?.message?.content?.trim();
 
     if (!phrase) {
       return { statusCode: 200, body: JSON.stringify({ phrase: null }) };

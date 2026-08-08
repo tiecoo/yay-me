@@ -3,7 +3,7 @@
 * **Autor:** Claude (agente de IA)
 * **Data:** 2026-08-08
 * **Status:** Implementado
-* **Tags:** #ia #netlify-functions #celebracao #claude
+* **Tags:** #ia #netlify-functions #celebracao #huggingface #deepseek
 
 ---
 
@@ -12,8 +12,12 @@ Hoje, ao salvar uma conquista, o `CelebrationModalComponent` escolhe uma
 frase aleatória de uma lista estática de 8 frases fixas
 (`motivational-phrases.ts`) — a frase nunca tem relação com o que a
 pessoa efetivamente escreveu. O objetivo desta mudança é gerar, na hora,
-uma frase de celebração com contexto real da conquista digitada,
-usando o modelo Claude (Anthropic).
+uma frase de celebração com contexto real da conquista digitada, usando
+o modelo **`deepseek-ai/DeepSeek-V4-Flash-0731`**, servido de graça pelo
+provedor **Novita** através do roteador de Inference Providers da
+Hugging Face (`router.huggingface.co`, API compatível com o formato de
+chat completions da OpenAI) — escolha do usuário por ser um modelo sem
+custo.
 
 ## 2. Objetivos e Não-Objetivos (Goals & Non-Goals)
 - **Objetivos (Goals):**
@@ -38,8 +42,8 @@ graph TD
     App -->|open(text)| Modal[CelebrationModalComponent]
     Modal -->|getPhrase(text)| PhraseService[CelebrationPhraseService]
     PhraseService -->|POST /.netlify/functions/celebrate-phrase| Function[Netlify Function]
-    Function -->|x-api-key server-side| Claude[Claude API - Anthropic]
-    Claude -->|frase gerada| Function
+    Function -->|Bearer HF_TOKEN server-side| HF[HF Router - DeepSeek V4 Flash via Novita]
+    HF -->|frase gerada| Function
     Function -->|"{ phrase }"| PhraseService
     PhraseService -->|timeout/erro| Fallback[Lista estática local]
 ```
@@ -48,10 +52,12 @@ graph TD
 
 ### Componentes e Arquivos
 - `netlify/functions/celebrate-phrase.js` (novo): Netlify Function
-  (`exports.handler`) que recebe `{ text }`, chama a API de mensagens do
-  Claude (`model: claude-haiku-4-5-20251001`) com um `system prompt`
-  curto, e devolve `{ phrase }`. Timeout interno de 6s via
-  `AbortController`. Qualquer erro (chave ausente, timeout, resposta
+  (`exports.handler`) que recebe `{ text }`, chama
+  `https://router.huggingface.co/v1/chat/completions` (formato chat
+  completions compatível com OpenAI) com
+  `model: 'deepseek-ai/DeepSeek-V4-Flash-0731:novita'` e um `system
+  prompt` curto, e devolve `{ phrase }`. Timeout interno de 6s via
+  `AbortController`. Qualquer erro (token ausente, timeout, resposta
   vazia, erro HTTP) retorna `{ phrase: null }` com status 200 — nunca
   propaga erro 5xx para o cliente.
 - `netlify.toml` (novo): declara `build.command`, `build.publish` e
@@ -81,17 +87,22 @@ graph TD
   ```json
   { "phrase": null }
   ```
-- Segredo: `ANTHROPIC_API_KEY` — variável de ambiente do **site no
-  Netlify** (Site settings → Environment variables), lida apenas em
-  runtime da function. Não passa pelo `generate-environment.js` e não é
-  incluída em nenhum `environment.*.ts` — nunca chega ao bundle público.
+- Segredo: `HF_TOKEN` — variável de ambiente do **site no Netlify** (Site
+  settings → Environment variables), lida apenas em runtime da function.
+  Não passa pelo `generate-environment.js` e não é incluída em nenhum
+  `environment.*.ts` — nunca chega ao bundle público.
 
 ## 5. Alternativas Consideradas
-- **Chamar a API do Claude direto do navegador**, com a chave injetada em
-  build-time (mesmo padrão hoje usado pra `GIPHY_API_KEY`): descartada.
-  A Anthropic não é pensada para chamadas diretas do browser com a chave
-  exposta — isso vazaria a chave no bundle público, e uma chave de IA é
-  um segredo mais sensível (custo/abuso) do que uma chave GIPHY.
+- **Chamar o roteador da Hugging Face direto do navegador**, com o token
+  injetado em build-time (mesmo padrão hoje usado pra `GIPHY_API_KEY`):
+  descartada. Isso vazaria o token de IA no bundle público — mais
+  sensível (custo/abuso/rate limit da conta) do que uma chave GIPHY.
+- **Claude (Anthropic) como provedor**: considerada e implementada
+  inicialmente, mas trocada por decisão do usuário em favor de um modelo
+  gratuito (`deepseek-ai/DeepSeek-V4-Flash-0731` via Novita/HF). A troca
+  ficou restrita ao corpo da function (endpoint, header de auth, formato
+  do body/response) — o resto da arquitetura (Netlify Function como
+  proxy, fallback local, contrato `{ phrase }`) não mudou.
 - **Backend dedicado (Node/Express) separado do front-end**: descartado
   por excesso de infraestrutura para um app single-user já hospedado no
   Netlify — uma Netlify Function resolve com escopo mínimo, reaproveitando
@@ -103,24 +114,33 @@ graph TD
   pelo Netlify).
 - Teste unitário manual do handler da function via Node (`require` +
   chamada direta), cobrindo: método não permitido, JSON inválido, texto
-  vazio, chave ausente (retorna `phrase: null`) e chamada real à API da
-  Anthropic com uma chave inválida (confirma que o payload/headers estão
-  corretos e que erros HTTP da API são tratados sem exceção).
+  vazio e token ausente (retorna `phrase: null`).
+- Payload e parsing de resposta validados contra o exemplo de código
+  oficial (`curl`) mostrado na página do modelo na Hugging Face — não foi
+  possível fazer uma chamada real de ponta a ponta durante o
+  desenvolvimento porque `huggingface.co`/`router.huggingface.co` está
+  bloqueado pela política de rede do ambiente de execução do agente (ao
+  contrário de `api.anthropic.com`, que está numa lista de exceção); a
+  validação completa de conectividade real deve ser feita após configurar
+  o `HF_TOKEN` no Netlify.
 - Teste end-to-end via Playwright: submeter uma conquista e verificar que
   o modal abre, aguarda o carregamento e, na ausência da function
   (ambiente local sem `netlify dev`), cai corretamente na frase estática
   — sem travar o modal nem lançar erro para o usuário.
-- Após configurar `ANTHROPIC_API_KEY` no Netlify, validar em produção que
-  a frase exibida referencia o texto da conquista digitada.
+- Após configurar `HF_TOKEN` no Netlify, validar em produção que a frase
+  exibida referencia o texto da conquista digitada.
 
 ## 7. Riscos e Questões Abertas
 - [x] Enviar o texto da conquista para uma API externa é uma exceção
       pontual ao posicionamento de privacidade "100% local" do app — o
       usuário confirmou que está de acordo, dado que nada é persistido
       no servidor.
-- [ ] Custo/quota da API do Claude em caso de uso intenso — não há
-      limitação de taxa própria implementada; para um app single-user o
-      volume é baixo, mas vale revisitar se o uso crescer.
+- [ ] O modelo é servido de graça por um provedor terceiro (Novita, via
+      Hugging Face) — não há SLA/garantia de disponibilidade contínua, e
+      o provedor pode mudar limites de uso ou deixar de oferecer o
+      modelo gratuitamente no futuro. O fallback para a lista estática
+      cobre esse risco na prática, mas vale revisitar periodicamente se
+      o modelo/provedor continuam disponíveis.
 - [ ] Sem `netlify dev`, a function não roda localmente durante
       `ng serve` — o fallback cobre isso na prática, mas para depurar a
       geração de frase de verdade em ambiente local é preciso rodar via
