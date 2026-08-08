@@ -1,0 +1,11 @@
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f4f6fb;
+  color: #1e293b;
+}
+
+button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
