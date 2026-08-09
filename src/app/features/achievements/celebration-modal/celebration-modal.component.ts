@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, ElementRef, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { AchievementService } from '../../../core/services/achievement.service';
 import { CelebrationPhraseService } from '../../../core/services/celebration-phrase.service';
+import { burstConfetti, prefersReducedMotion } from '../../../core/services/confetti.util';
 import { GifService } from '../../../core/services/gif.service';
 
 @Component({
@@ -15,10 +16,14 @@ import { GifService } from '../../../core/services/gif.service';
   styleUrl: './celebration-modal.component.scss'
 })
 export class CelebrationModalComponent implements OnInit, AfterViewInit {
+  @ViewChild('confettiCanvas') confettiCanvas?: ElementRef<HTMLCanvasElement>;
+
   public visible = false;
   public gifUrl: string | null = null;
   public phrase = '';
   public phraseFromAi = false;
+
+  private stopConfetti: (() => void) | null = null;
 
   constructor(
     private gifService: GifService,
@@ -57,7 +62,17 @@ export class CelebrationModalComponent implements OnInit, AfterViewInit {
     });
   }
 
+  public onShow(): void {
+    if (prefersReducedMotion() || !this.confettiCanvas) {
+      return;
+    }
+    this.stopConfetti?.();
+    this.stopConfetti = burstConfetti(this.confettiCanvas.nativeElement);
+  }
+
   public onClose(): void {
+    this.stopConfetti?.();
+    this.stopConfetti = null;
     this.visible = false;
   }
 }

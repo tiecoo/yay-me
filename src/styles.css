@@ -1,14 +1,15 @@
 :root {
-  --color-primary: #4f46e5;
-  --color-primary-dark: #4338ca;
-  --color-primary-soft: #eef2ff;
-  --color-accent: #f59e0b;
+  --color-primary: #f59e0b;
+  --color-primary-dark: #92400e;
+  --color-primary-soft: #fef3c7;
+  --color-on-primary: #1e1b3a;
+  --color-accent: #ec4899;
   --color-danger: #ef4444;
   --color-danger-soft: #fef2f2;
   --color-success: #10b981;
 
-  --color-bg: #f5f4ff;
-  --color-bg-gradient: linear-gradient(180deg, #eef2ff 0%, #f6f7fb 45%, #fdf6ec 100%);
+  --color-bg: #fffbeb;
+  --color-bg-gradient: linear-gradient(180deg, #eef2ff 0%, #fff7ed 45%, #fff1f2 100%);
   --color-surface: #ffffff;
   --color-text: #1e1b3a;
   --color-text-muted: #6b7280;
@@ -27,10 +28,33 @@
   --space-6: 2rem;
 
   --shadow-sm: 0 1px 2px rgba(30, 27, 58, 0.06);
-  --shadow-md: 0 8px 24px rgba(79, 70, 229, 0.1);
-  --shadow-lg: 0 16px 40px rgba(79, 70, 229, 0.16);
+  --shadow-md: 0 8px 24px rgba(217, 119, 6, 0.14);
+  --shadow-lg: 0 16px 40px rgba(236, 72, 153, 0.18);
 
-  color-scheme: light;
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: #fbbf24;
+    --color-primary-dark: #fde68a;
+    --color-primary-soft: #45320f;
+    --color-accent: #f472b6;
+    --color-danger: #f87171;
+    --color-danger-soft: #3f1d1d;
+    --color-success: #34d399;
+
+    --color-bg: #1c140a;
+    --color-bg-gradient: linear-gradient(180deg, #241d3d 0%, #241a12 45%, #2a1620 100%);
+    --color-surface: #2a2015;
+    --color-text: #fdf6ec;
+    --color-text-muted: #b8a892;
+    --color-border: #3d3120;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
+  }
 }
 
 *,
@@ -78,6 +102,7 @@ button:disabled {
 .p-dialog .p-dialog-content,
 .p-dialog .p-dialog-header {
   background: var(--color-surface);
+  color: var(--color-text);
 }
 
 .celebration-dialog.p-dialog {
@@ -89,4 +114,30 @@ button:disabled {
 .celebration-dialog .p-dialog-content {
   padding: var(--space-6) var(--space-5) var(--space-5);
   border-radius: var(--radius-lg);
+}
+
+.p-button:not(.p-button-text):not(.p-button-outlined) {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.p-button:not(.p-button-text):not(.p-button-outlined):enabled:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+  color: var(--color-on-primary);
+}
+
+.p-button.p-button-text {
+  color: var(--color-primary-dark);
+}
+
+.p-progress-spinner-circle {
+  stroke: var(--color-primary) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .p-button.p-button-text {
+    color: var(--color-primary);
+  }
 }
