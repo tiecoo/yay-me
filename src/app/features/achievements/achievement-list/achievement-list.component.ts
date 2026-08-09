@@ -2,8 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { AchievementService } from '../../../core/services/achievement.service';
-import { Observable } from 'rxjs';
+import { CategoryService } from '../../../core/services/category.service';
+import { map, Observable } from 'rxjs';
 import { Achievement } from '../../../shared/models/achievement.model';
+import { Category } from '../../../shared/models/category.model';
 
 interface GroupedAchievements {
   date: string;
@@ -26,7 +28,10 @@ const CONFIRM_TIMEOUT_MS = 3000;
               <div class="card-body">
                 <span class="time-chip"><i class="pi pi-clock"></i>{{ item.createdAt | date: 'shortTime' }}</span>
                 <p class="achievement-text">{{ item.text }}</p>
-                <div class="tags" *ngIf="item.tags?.length">
+                <div class="tags" *ngIf="item.tags?.length || (item.categoryId && (categoriesById | async)?.[item.categoryId])">
+                  <span class="tag category-tag" *ngIf="item.categoryId && (categoriesById | async)?.[item.categoryId] as category">
+                    {{ category.icon }} {{ category.label }}
+                  </span>
                   <span class="tag" *ngFor="let tag of item.tags">{{ tag }}</span>
                 </div>
               </div>
@@ -99,6 +104,10 @@ const CONFIRM_TIMEOUT_MS = 3000;
       padding: 0.125rem var(--space-2);
       border-radius: var(--radius-full);
     }
+    .category-tag {
+      color: var(--color-text);
+      background: var(--color-border);
+    }
     .delete-button {
       flex-shrink: 0;
       color: var(--color-text-muted) !important;
@@ -131,11 +140,18 @@ const CONFIRM_TIMEOUT_MS = 3000;
 })
 export class AchievementListComponent {
   public achievements$: Observable<Achievement[]>;
+  public categoriesById: Observable<Record<string, Category>>;
   public pendingDeleteId: string | null = null;
   private confirmTimer?: ReturnType<typeof setTimeout>;
 
-  constructor(private achievementService: AchievementService) {
+  constructor(
+    private achievementService: AchievementService,
+    private categoryService: CategoryService
+  ) {
     this.achievements$ = this.achievementService.achievements$;
+    this.categoriesById = this.categoryService.categories$.pipe(
+      map(categories => Object.fromEntries(categories.map(category => [category.id, category])))
+    );
   }
 
   public onDeleteClick(id: string): void {
