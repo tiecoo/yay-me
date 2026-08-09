@@ -4,10 +4,3 @@
 
 [functions]
   directory = "netlify/functions"
-
-[dev]
-  command = "npm start"
-  targetPort = 4200
-  port = 8888
-  publish = "dist/yay-me"
-  framework = "#custom"

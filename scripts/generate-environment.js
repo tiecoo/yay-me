@@ -16,7 +16,6 @@ const gitSha = process.env.GIT_SHA || getGitValue('git rev-parse --short HEAD');
 const gitBranch = process.env.GIT_BRANCH || getGitValue('git rev-parse --abbrev-ref HEAD');
 const buildDate = process.env.BUILD_DATE || new Date().toISOString();
 const giphyApiKey = process.env.GIPHY_API_KEY || '';
-const googleClientId = process.env.GOOGLE_CLIENT_ID || '';
 
 // read simple .env file fallback for NEW_RELIC_LICENSE_KEY
 function getEnvVarFromDotEnv(key) {
@@ -50,7 +49,6 @@ const contents = `export const environment = {
   newRelicTrustKey: '${newRelicTrustKey}',
   newRelicAgentId: '${newRelicAgentId}',
   giphyApiKey: '${giphyApiKey}',
-  googleClientId: '${googleClientId}',
   gitSha: '${gitSha}',
   gitBranch: '${gitBranch}',
   buildDate: '${buildDate}'

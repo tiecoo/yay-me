@@ -12,9 +12,6 @@
     "lint": "ng lint"
   },
   "dependencies": {
-    "@netlify/database": "^1.0.0",
-    "jose": "^5.9.6",
-
     "@angular/animations": "^17.3.12",
     "@angular/common": "^17.3.12",
     "@angular/compiler": "^17.3.12",

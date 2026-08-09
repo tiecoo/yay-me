@@ -1,24 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
-import { DropdownModule } from 'primeng/dropdown';
 import { InputTextareaModule } from 'primeng/inputtextarea';
-import { Observable } from 'rxjs';
-import { CategoryService } from '../../../core/services/category.service';
-import { Category } from '../../../shared/models/category.model';
 
 const MAX_LENGTH = 280;
-
-export interface AchievementFormPayload {
-  text: string;
-  categoryId: string | null;
-}
 
 @Component({
   selector: 'app-achievement-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, InputTextareaModule, ButtonModule, DropdownModule],
+  imports: [CommonModule, FormsModule, InputTextareaModule, ButtonModule],
   template: `
     <div class="achievement-form">
       <label class="form-label" for="achievement-input">Hoje eu consegui...</label>
@@ -33,26 +24,6 @@ export interface AchievementFormPayload {
         placeholder="Ex.: terminei aquele relatório chato, fui na academia, liguei pra minha mãe..."
         class="achievement-input"
       ></textarea>
-
-      <p-dropdown
-        [options]="categories$ | async"
-        [(ngModel)]="categoryId"
-        optionLabel="label"
-        optionValue="id"
-        placeholder="Categoria (opcional)"
-        [showClear]="true"
-        styleClass="category-dropdown"
-      >
-        <ng-template let-category pTemplate="item">
-          <span>{{ category.icon }} {{ category.label }}</span>
-        </ng-template>
-        <ng-template let-category pTemplate="selectedItem">
-          <span *ngIf="category">{{ category.icon }} {{ category.label }}</span>
-        </ng-template>
-      </p-dropdown>
-
-      <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
-
       <div class="form-footer">
         <span class="char-count" [class.char-count--limit]="remaining <= 20">{{ remaining }} caracteres restantes</span>
         <button
@@ -95,7 +66,6 @@ export interface AchievementFormPayload {
       border-color: var(--color-primary);
       outline: none;
     }
-    :host ::ng-deep .category-dropdown { width: 100%; }
     .form-footer {
       display: flex;
       align-items: center;
@@ -105,7 +75,6 @@ export interface AchievementFormPayload {
     }
     .char-count { font-size: 0.8125rem; color: var(--color-text-muted); }
     .char-count--limit { color: var(--color-danger); }
-    .error { margin: 0; font-size: 0.8125rem; color: var(--color-danger); }
     .save-button { width: 100%; }
     @media (min-width: 480px) {
       .save-button { width: auto; margin-left: auto; }
@@ -114,16 +83,9 @@ export interface AchievementFormPayload {
   ]
 })
 export class AchievementFormComponent {
-  @Input() errorMessage: string | null = null;
-  @Output() saved = new EventEmitter<AchievementFormPayload>();
+  @Output() saved = new EventEmitter<string>();
   public text = '';
-  public categoryId: string | null = null;
   public readonly maxLength = MAX_LENGTH;
-  public categories$: Observable<Category[]>;
-
-  constructor(private categoryService: CategoryService) {
-    this.categories$ = this.categoryService.categories$;
-  }
 
   public get remaining(): number {
     return this.maxLength - this.text.length;
@@ -135,12 +97,7 @@ export class AchievementFormComponent {
       return;
     }
 
-    this.saved.emit({ text: payload, categoryId: this.categoryId });
-  }
-
-  /** Chamado pelo AppComponent só depois que o backend confirma o salvamento. */
-  public reset(): void {
+    this.saved.emit(payload);
     this.text = '';
-    this.categoryId = null;
   }
 }
