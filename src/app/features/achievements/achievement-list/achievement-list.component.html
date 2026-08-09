@@ -1,0 +1,35 @@
+<ng-container *ngIf="achievements$ | async as achievements">
+  <ng-container *ngIf="achievements.length; else emptyState">
+    <div *ngFor="let group of grouped(achievements)" class="group">
+      <h3 class="group-title">{{ group.date }}</h3>
+      <div class="cards">
+        <article *ngFor="let item of group.items" class="achievement-card">
+          <div class="card-body">
+            <span class="time-chip"><i class="pi pi-clock"></i>{{ item.createdAt | date: 'shortTime' }}</span>
+            <p class="achievement-text">{{ item.text }}</p>
+            <div class="tags" *ngIf="item.tags?.length">
+              <span class="tag" *ngFor="let tag of item.tags">{{ tag }}</span>
+            </div>
+          </div>
+          <button
+            pButton
+            type="button"
+            [attr.aria-label]="pendingDeleteId === item.id ? 'Confirmar exclusão' : 'Excluir conquista'"
+            [icon]="pendingDeleteId === item.id ? 'pi pi-check' : 'pi pi-trash'"
+            [label]="pendingDeleteId === item.id ? 'Confirmar' : undefined"
+            class="delete-button"
+            [class.delete-button--confirming]="pendingDeleteId === item.id"
+            (click)="onDeleteClick(item.id)"
+          ></button>
+        </article>
+      </div>
+    </div>
+  </ng-container>
+  <ng-template #emptyState>
+    <div class="empty-state">
+      <span class="empty-emoji" aria-hidden="true">🌱</span>
+      <p class="empty-title">Sua jornada começa aqui.</p>
+      <p class="empty-subtitle">Registre a primeira conquista do dia acima — pode ser pequena, ela ainda conta.</p>
+    </div>
+  </ng-template>
+</ng-container>

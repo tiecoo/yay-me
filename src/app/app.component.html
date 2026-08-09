@@ -1,0 +1,25 @@
+<header class="app-bar">
+  <div class="app-bar-inner">
+    <span class="app-bar-emoji" aria-hidden="true">🎉</span>
+    <div>
+      <h1>Yay-me</h1>
+      <p class="tagline">Pequenas vitórias, grandes celebrações.</p>
+    </div>
+  </div>
+</header>
+
+<main class="app-shell">
+  <app-stats-dashboard></app-stats-dashboard>
+
+  <section class="form-section">
+    <app-achievement-form (saved)="onSaved($event)"></app-achievement-form>
+  </section>
+
+  <section class="list-section">
+    <app-achievement-list></app-achievement-list>
+  </section>
+
+  <app-backup-controls></app-backup-controls>
+</main>
+
+<app-celebration-modal #celebrationModal></app-celebration-modal>

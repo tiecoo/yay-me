@@ -1,0 +1,6 @@
+<div class="backup-controls">
+  <button pButton type="button" label="Exportar backup" icon="pi pi-download" class="p-button-text backup-button" (click)="onExport()"></button>
+  <button pButton type="button" label="Importar backup" icon="pi pi-upload" class="p-button-text backup-button" (click)="fileInput.click()"></button>
+  <input #fileInput type="file" accept="application/json" class="hidden-input" (change)="onFileSelected($event)" />
+</div>
+<p class="backup-status" *ngIf="statusMessage" [class.backup-status--error]="statusIsError">{{ statusMessage }}</p>
