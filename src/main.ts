@@ -28,12 +28,20 @@ function initNewRelic(): void {
     return;
   }
 
+  const applicationID = (environment as any).newRelicApplicationId || '';
+  const accountID = (environment as any).newRelicAccountId || '';
+  const trustKey = (environment as any).newRelicTrustKey || '';
+  const agentID = (environment as any).newRelicAgentId || '';
+
   (window as any).NREUM = (window as any).NREUM || {};
+  // loader_config é exigido pelo agente Browser Pro+SPA (route-change tracking,
+  // distributed tracing) — sem ele o agente carrega mas não funciona por completo.
+  (window as any).NREUM.loader_config = { accountID, trustKey, agentID, licenseKey, applicationID };
   (window as any).NREUM.info = {
     beacon: 'bam.nr-data.net',
     errorBeacon: 'bam.nr-data.net',
     licenseKey,
-    applicationID: (environment as any).newRelicApplicationId || '',
+    applicationID,
     sa: 1
   };
 

@@ -3,6 +3,9 @@ export const environment = {
   giphyApiKey: '',
   newRelicLicenseKey: '',
   newRelicApplicationId: '',
+  newRelicAccountId: '',
+  newRelicTrustKey: '',
+  newRelicAgentId: '',
   gitSha: '',
   gitBranch: '',
   buildDate: ''

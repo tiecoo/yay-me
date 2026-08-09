@@ -37,11 +37,17 @@ function getEnvVarFromDotEnv(key) {
 
 const newRelicLicenseKey = process.env.NEW_RELIC_LICENSE_KEY || getEnvVarFromDotEnv('NEW_RELIC_LICENSE_KEY') || '';
 const newRelicApplicationId = process.env.NEW_RELIC_APPLICATION_ID || getEnvVarFromDotEnv('NEW_RELIC_APPLICATION_ID') || '';
+const newRelicAccountId = process.env.NEW_RELIC_ACCOUNT_ID || getEnvVarFromDotEnv('NEW_RELIC_ACCOUNT_ID') || '';
+const newRelicTrustKey = process.env.NEW_RELIC_TRUST_KEY || getEnvVarFromDotEnv('NEW_RELIC_TRUST_KEY') || '';
+const newRelicAgentId = process.env.NEW_RELIC_AGENT_ID || getEnvVarFromDotEnv('NEW_RELIC_AGENT_ID') || '';
 
 const contents = `export const environment = {
   production: true,
   newRelicLicenseKey: '${newRelicLicenseKey}',
   newRelicApplicationId: '${newRelicApplicationId}',
+  newRelicAccountId: '${newRelicAccountId}',
+  newRelicTrustKey: '${newRelicTrustKey}',
+  newRelicAgentId: '${newRelicAgentId}',
   giphyApiKey: '${giphyApiKey}',
   gitSha: '${gitSha}',
   gitBranch: '${gitBranch}',
