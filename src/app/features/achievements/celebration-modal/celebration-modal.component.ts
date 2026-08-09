@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { AchievementService } from '../../../core/services/achievement.service';
 import { CelebrationPhraseService } from '../../../core/services/celebration-phrase.service';
 import { GifService } from '../../../core/services/gif.service';
 
@@ -30,7 +31,10 @@ import { GifService } from '../../../core/services/gif.service';
         </ng-container>
         <ng-template #loading>
           <div class="loading-state">
-            <p-progressSpinner strokeWidth="4" [style]="{ width: '2.5rem', height: '2.5rem' }"></p-progressSpinner>
+            <img *ngIf="loadingGifUrl; else loadingSpinner" [src]="loadingGifUrl" alt="Aguardando" class="loading-gif" />
+            <ng-template #loadingSpinner>
+              <p-progressSpinner strokeWidth="4" [style]="{ width: '2.5rem', height: '2.5rem' }"></p-progressSpinner>
+            </ng-template>
             <p>Preparando sua celebração...</p>
           </div>
         </ng-template>
@@ -65,7 +69,14 @@ import { GifService } from '../../../core/services/gif.service';
       padding: var(--space-2) var(--space-4);
       border-radius: var(--radius-full);
     }
-    .loading-state { display: grid; gap: var(--space-3); justify-items: center; padding: var(--space-6) 0; color: var(--color-text-muted); }
+    .loading-state { display: grid; gap: var(--space-3); justify-items: center; padding: var(--space-4) 0; color: var(--color-text-muted); }
+    .loading-gif {
+      width: 100%;
+      border-radius: var(--radius-md);
+      max-height: 200px;
+      object-fit: cover;
+      box-shadow: var(--shadow-sm);
+    }
     .continue-button { width: 100%; margin-top: var(--space-2); }
     @keyframes pop {
       0% { transform: scale(0.5); opacity: 0; }
@@ -77,24 +88,32 @@ import { GifService } from '../../../core/services/gif.service';
 export class CelebrationModalComponent {
   public visible = false;
   public gifUrl: string | null = null;
+  public loadingGifUrl: string | null = null;
   public phrase: string | null = null;
 
   constructor(
     private gifService: GifService,
-    private celebrationPhraseService: CelebrationPhraseService
+    private celebrationPhraseService: CelebrationPhraseService,
+    private achievementService: AchievementService
   ) {}
 
-  public open(achievementText: string): void {
+  public open(achievementId: string, achievementText: string): void {
     this.visible = true;
     this.gifUrl = null;
+    this.loadingGifUrl = null;
     this.phrase = null;
+
+    this.gifService.getRandomLoadingGif().subscribe(url => {
+      this.loadingGifUrl = url;
+    });
 
     this.gifService.getRandomCelebrationGif().subscribe(url => {
       this.gifUrl = url;
     });
 
-    this.celebrationPhraseService.getPhrase(achievementText).subscribe(phrase => {
+    this.celebrationPhraseService.getCelebrationInsights(achievementText).subscribe(({ phrase, tags }) => {
       this.phrase = phrase;
+      this.achievementService.updateTags(achievementId, tags);
     });
   }
 
