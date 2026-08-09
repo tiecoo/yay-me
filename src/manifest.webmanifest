@@ -1,7 +1,7 @@
 {
   "name": "Yay-me",
   "short_name": "Yay-me",
-  "theme_color": "#4f46e5",
+  "theme_color": "#f59e0b",
   "background_color": "#ffffff",
   "display": "standalone",
   "scope": "/",

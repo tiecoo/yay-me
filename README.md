@@ -24,14 +24,34 @@ Projeto criado para aprender mais sobre IA e agentes.
 ## 🎨 UI / Design System
 
 - **PrimeNG** (tema `lara-light-indigo`), **PrimeIcons** e tokens de design
-  próprios (`src/styles.css`) — cores leves, cantos arredondados e sombras
-  suaves aplicados de forma consistente em todos os componentes.
+  próprios (`src/styles.css`) — cantos arredondados e sombras suaves
+  aplicados de forma consistente em todos os componentes.
+- **Paleta "dourado de troféu"**, pensada com base em psicologia da
+  celebração: dourado/âmbar (`--color-primary`) como cor dominante —
+  associação universal com troféu/medalha/conquista — e rosa/coral
+  (`--color-accent`) como destaque afetivo, usado com moderação. O indigo
+  original sobrevive só como ponto de entrada calmo no topo do gradiente
+  de fundo.
+- **Dark mode automático** via `prefers-color-scheme` (sem toggle manual):
+  os mesmos tokens ganham uma variante escura e quente (tons de marrom
+  profundo, não preto/azulado) em `src/styles.css`, incluindo overrides
+  escopados para os componentes PrimeNG usados no app (botão, dialog,
+  spinner).
 - Layout **mobile-first e responsivo**, com app bar fixa, `safe-area` para
   notch de iOS e área de toque confortável nos botões.
 - Fluxo de exclusão de conquista com **confirmação inline em dois toques**
   (evita apagar por engano).
-- Modal de celebração com animação de entrada, GIF, frase motivacional e
-  CTA de fechamento claro para uso no celular.
+- Modal de celebração com animação de entrada, **burst de confete em
+  canvas** (paleta dourado/rosa/indigo, ~1.2s, sem dependência externa —
+  `src/app/core/services/confetti.util.ts`), GIF, frase motivacional e CTA
+  de fechamento claro para uso no celular. O confete é pulado
+  automaticamente quando o sistema pede "reduzir movimento"
+  (`prefers-reduced-motion`), e não há som — o app é um diário pessoal,
+  não deve ser intrusivo.
+- Frases motivacionais (`src/app/core/services/motivational-phrases.ts`)
+  ampliadas para ~40 variações em 5 categorias, com linguagem inspirada em
+  mindset de crescimento (elogio de esforço/processo em vez de traço
+  genérico).
 
 ## 🤖 Frase de celebração com IA
 

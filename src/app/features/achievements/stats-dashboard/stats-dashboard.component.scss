@@ -18,6 +18,12 @@
 .dial--secondary .dial-icon { font-size: 1rem; line-height: 1; }
 .dial--secondary .dial-value { font-size: 0.9375rem; font-weight: 700; color: var(--color-primary-dark); }
 
+/* Recorde de streak nunca "reseta" — permanece na cor dourada como uma conquista já ganha. */
+.dial--won {
+  background: var(--color-primary);
+}
+.dial--won .dial-value { color: var(--color-on-primary); }
+
 .dial--primary {
   position: relative;
   width: 5rem;
@@ -31,7 +37,7 @@
 }
 .dial-ring-progress {
   fill: none;
-  stroke: var(--color-accent);
+  stroke: var(--color-primary);
   stroke-width: 7;
   stroke-linecap: round;
   transition: stroke-dashoffset 0.4s ease;
@@ -45,3 +51,17 @@
 }
 .dial-center .dial-icon { font-size: 1.25rem; }
 .dial-center .dial-value { font-size: 1.0625rem; font-weight: 800; color: var(--color-text); }
+
+/* Destaque de uma vez só quando o streak atual aumenta — reforço positivo, sem urgência/perda. */
+.dial--boost .dial-ring-progress { animation: streak-boost-ring 0.6s ease; }
+.dial--boost .dial-center { animation: streak-boost-center 0.6s ease; }
+@keyframes streak-boost-ring {
+  0% { stroke: var(--color-primary); }
+  40% { stroke: var(--color-accent); }
+  100% { stroke: var(--color-primary); }
+}
+@keyframes streak-boost-center {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}

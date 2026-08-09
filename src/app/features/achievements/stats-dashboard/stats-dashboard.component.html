@@ -1,10 +1,10 @@
-<div class="dials" *ngIf="stats$ | async as stats" [class.dials--hidden]="!stats.total">
-  <div class="dial dial--secondary" title="Recorde de dias seguidos">
+<div class="dials" *ngIf="statsView$ | async as view" [class.dials--hidden]="!view.stats.total">
+  <div class="dial dial--secondary dial--won" title="Recorde de dias seguidos">
     <span class="dial-icon" aria-hidden="true">🏆</span>
-    <span class="dial-value">{{ stats.longestStreak }}</span>
+    <span class="dial-value">{{ view.stats.longestStreak }}</span>
   </div>
 
-  <div class="dial dial--primary" title="Sequência atual de dias seguidos">
+  <div class="dial dial--primary" [class.dial--boost]="view.streakIncreased" title="Sequência atual de dias seguidos">
     <svg class="dial-ring" viewBox="0 0 80 80" aria-hidden="true">
       <circle class="dial-ring-track" cx="40" cy="40" r="34"></circle>
       <circle
@@ -13,17 +13,17 @@
         cy="40"
         r="34"
         [attr.stroke-dasharray]="ringCircumference"
-        [attr.stroke-dashoffset]="ringOffset(stats.currentStreak)"
+        [attr.stroke-dashoffset]="ringOffset(view.stats.currentStreak)"
       ></circle>
     </svg>
     <div class="dial-center">
       <span class="dial-icon" aria-hidden="true">🔥</span>
-      <span class="dial-value">{{ stats.currentStreak }}</span>
+      <span class="dial-value">{{ view.stats.currentStreak }}</span>
     </div>
   </div>
 
   <div class="dial dial--secondary" title="Total de conquistas registradas">
     <span class="dial-icon" aria-hidden="true">✅</span>
-    <span class="dial-value">{{ stats.total }}</span>
+    <span class="dial-value">{{ view.stats.total }}</span>
   </div>
 </div>
