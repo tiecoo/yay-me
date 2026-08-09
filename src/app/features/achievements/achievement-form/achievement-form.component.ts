@@ -97,6 +97,7 @@ export class AchievementFormComponent {
       return;
     }
 
+    console.debug('AchievementForm.save emitting', payload);
     this.saved.emit(payload);
     this.text = '';
   }

@@ -93,7 +93,10 @@ export class AppComponent {
   public onSaved(text: string): void {
     const achievement = this.achievementService.addAchievement(text);
     if (achievement) {
-      this.celebrationModal?.open(achievement.id, achievement.text);
+      // Abrir o modal na próxima iteração do loop de evento garante que
+      // o `ViewChild` esteja disponível e evita condições de corrida.
+      console.debug('Opening celebration modal for', achievement.id);
+      setTimeout(() => this.celebrationModal?.open(achievement.id, achievement.text), 0);
     }
   }
 }

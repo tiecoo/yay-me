@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
@@ -91,7 +91,7 @@ import { GifService } from '../../../core/services/gif.service';
     `
   ]
 })
-export class CelebrationModalComponent {
+export class CelebrationModalComponent implements OnInit, AfterViewInit {
   public visible = false;
   public gifUrl: string | null = null;
   public phrase = '';
@@ -103,7 +103,16 @@ export class CelebrationModalComponent {
     private achievementService: AchievementService
   ) {}
 
+  ngOnInit(): void {
+    console.debug('CelebrationModalComponent.ngOnInit');
+  }
+
+  ngAfterViewInit(): void {
+    console.debug('CelebrationModalComponent.ngAfterViewInit');
+  }
+
   public open(achievementId: string, achievementText: string): void {
+    console.debug('CelebrationModalComponent.open called with', { achievementId, achievementText });
     this.visible = true;
     this.gifUrl = null;
     this.phraseFromAi = false;
@@ -114,7 +123,9 @@ export class CelebrationModalComponent {
       this.gifUrl = url;
     });
 
+    console.debug('Calling getCelebrationInsights with', achievementText);
     this.celebrationPhraseService.getCelebrationInsights(achievementText).subscribe(({ phrase, tags }) => {
+      console.debug('getCelebrationInsights result', { phrase, tags });
       if (phrase) {
         this.phrase = phrase;
         this.phraseFromAi = true;

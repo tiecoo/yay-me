@@ -15,6 +15,15 @@
     <link rel="icon" type="image/png" href="/assets/icons/favicon.png" />
     <link rel="shortcut icon" href="/assets/icons/favicon.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/icon-192.png" />
+    <script>
+      // Durante desenvolvimento local, se você executar as Netlify Functions
+      // separadamente (ex: netlify dev), ajuste a URL abaixo para o host/porta
+      // onde as functions ficam disponíveis. Isso pode ser sobrescrito manualmente
+      // no console antes de reproduzir o fluxo.
+      if (location.hostname === 'localhost') {
+        window.__NETLIFY_FUNCTIONS_URL__ = 'http://localhost:56202/.netlify/functions';
+      }
+    </script>
   </head>
   <body>
     <app-root></app-root>
