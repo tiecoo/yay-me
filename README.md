@@ -59,6 +59,25 @@ Projeto criado para aprender mais sobre IA e agentes.
   e cadastrá-lo em **Netlify → Site settings → Environment variables**
   como `HF_TOKEN`.
 
+## 📈 Monitoramento (New Relic Browser)
+
+- O agente do New Relic é inicializado em `src/main.ts` (não em
+  `index.html`) — a configuração (`NREUM.info`, com a license key já
+  resolvida do build) é montada **antes** do `<script>` do agente ser
+  criado e inserido no `<head>`, evitando o bug anterior de o agente
+  carregar antes da chave estar disponível (a chave sempre chegava vazia).
+- Variáveis necessárias no Netlify (Site settings → Environment
+  variables), mesmo padrão do `GIPHY_API_KEY`/`HF_TOKEN`:
+  - `NEW_RELIC_LICENSE_KEY` (já configurada)
+  - `NEW_RELIC_APPLICATION_ID` — **pendente**: pegue em New Relic →
+    Browser → (o app) → Application settings → "Application ID", e
+    cadastre com esse nome. Sem ela, o agente carrega mas o New Relic
+    pode não conseguir associar os dados a uma aplicação Browser
+    específica.
+- Sem `NEW_RELIC_LICENSE_KEY` configurada (ex.: build local/dev), o
+  agente simplesmente não é carregado — nenhum erro, nenhuma chamada de
+  rede desnecessária.
+
 ## 📐 Convenção para SDDs
 
 Todos os novos documentos de design de software devem ser adicionados na pasta `docs/sdd/` utilizando o formato numérico sequencial:

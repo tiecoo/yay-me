@@ -36,10 +36,12 @@ function getEnvVarFromDotEnv(key) {
 }
 
 const newRelicLicenseKey = process.env.NEW_RELIC_LICENSE_KEY || getEnvVarFromDotEnv('NEW_RELIC_LICENSE_KEY') || '';
+const newRelicApplicationId = process.env.NEW_RELIC_APPLICATION_ID || getEnvVarFromDotEnv('NEW_RELIC_APPLICATION_ID') || '';
 
 const contents = `export const environment = {
   production: true,
   newRelicLicenseKey: '${newRelicLicenseKey}',
+  newRelicApplicationId: '${newRelicApplicationId}',
   giphyApiKey: '${giphyApiKey}',
   gitSha: '${gitSha}',
   gitBranch: '${gitBranch}',
