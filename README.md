@@ -45,7 +45,10 @@ Projeto criado para aprender mais sobre IA e agentes.
 - O token `HF_TOKEN` fica **apenas no servidor** (variável de ambiente do
   site no Netlify) — nunca é incluído no bundle publicado, ao contrário
   da `GIPHY_API_KEY` que já é client-side hoje.
-- Se o token não estiver configurado, a IA falhar ou demorar mais de 5s,
+- Enquanto espera a resposta da IA, o modal mostra um GIF de "aguarde"
+  (categoria própria no GIPHY, com fallback local) em vez de só um
+  spinner — mantém o clima divertido também durante o carregamento.
+- Se o token não estiver configurado, a IA falhar ou demorar mais de 8s,
   o app cai automaticamente na lista estática de frases já existente
   (`motivational-phrases.ts`) e a conquista fica sem tags — nenhuma
   funcionalidade fica bloqueada.
