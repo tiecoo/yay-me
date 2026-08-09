@@ -1,0 +1,29 @@
+<div class="dials" *ngIf="stats$ | async as stats" [class.dials--hidden]="!stats.total">
+  <div class="dial dial--secondary" title="Recorde de dias seguidos">
+    <span class="dial-icon" aria-hidden="true">🏆</span>
+    <span class="dial-value">{{ stats.longestStreak }}</span>
+  </div>
+
+  <div class="dial dial--primary" title="Sequência atual de dias seguidos">
+    <svg class="dial-ring" viewBox="0 0 80 80" aria-hidden="true">
+      <circle class="dial-ring-track" cx="40" cy="40" r="34"></circle>
+      <circle
+        class="dial-ring-progress"
+        cx="40"
+        cy="40"
+        r="34"
+        [attr.stroke-dasharray]="ringCircumference"
+        [attr.stroke-dashoffset]="ringOffset(stats.currentStreak)"
+      ></circle>
+    </svg>
+    <div class="dial-center">
+      <span class="dial-icon" aria-hidden="true">🔥</span>
+      <span class="dial-value">{{ stats.currentStreak }}</span>
+    </div>
+  </div>
+
+  <div class="dial dial--secondary" title="Total de conquistas registradas">
+    <span class="dial-icon" aria-hidden="true">✅</span>
+    <span class="dial-value">{{ stats.total }}</span>
+  </div>
+</div>

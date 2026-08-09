@@ -9,33 +9,8 @@ const STATUS_TIMEOUT_MS = 4000;
   selector: 'app-backup-controls',
   standalone: true,
   imports: [CommonModule, ButtonModule],
-  template: `
-    <div class="backup-controls">
-      <button pButton type="button" label="Exportar backup" icon="pi pi-download" class="p-button-text backup-button" (click)="onExport()"></button>
-      <button pButton type="button" label="Importar backup" icon="pi pi-upload" class="p-button-text backup-button" (click)="fileInput.click()"></button>
-      <input #fileInput type="file" accept="application/json" class="hidden-input" (change)="onFileSelected($event)" />
-    </div>
-    <p class="backup-status" *ngIf="statusMessage" [class.backup-status--error]="statusIsError">{{ statusMessage }}</p>
-  `,
-  styles: [
-    `
-    .backup-controls {
-      display: flex;
-      justify-content: center;
-      gap: var(--space-2);
-      flex-wrap: wrap;
-    }
-    .backup-button { color: var(--color-text-muted) !important; font-size: 0.8125rem !important; }
-    .hidden-input { display: none; }
-    .backup-status {
-      margin: var(--space-2) 0 0;
-      text-align: center;
-      font-size: 0.8125rem;
-      color: var(--color-success);
-    }
-    .backup-status--error { color: var(--color-danger); }
-    `
-  ]
+  templateUrl: './backup-controls.component.html',
+  styleUrl: './backup-controls.component.scss'
 })
 export class BackupControlsComponent {
   public statusMessage: string | null = null;

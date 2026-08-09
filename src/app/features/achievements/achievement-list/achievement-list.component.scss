@@ -1,0 +1,71 @@
+.group { display: grid; gap: var(--space-3); }
+.group-title {
+  display: inline-flex;
+  align-self: flex-start;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--color-primary-dark);
+  background: var(--color-primary-soft);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+}
+.cards { display: grid; gap: var(--space-3); }
+.achievement-card {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4);
+  transition: box-shadow 0.15s ease;
+}
+.achievement-card:hover { box-shadow: var(--shadow-md); }
+.card-body { flex: 1; min-width: 0; display: grid; gap: var(--space-2); }
+.time-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  align-self: flex-start;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+.achievement-text { margin: 0; color: var(--color-text); line-height: 1.5; word-break: break-word; }
+.tags { display: flex; flex-wrap: wrap; gap: var(--space-1); }
+.tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  background: var(--color-primary-soft);
+  padding: 0.125rem var(--space-2);
+  border-radius: var(--radius-full);
+}
+.delete-button {
+  flex-shrink: 0;
+  color: var(--color-text-muted) !important;
+  background: transparent !important;
+  border: none !important;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+.delete-button--confirming {
+  width: auto !important;
+  color: var(--color-danger) !important;
+  background: var(--color-danger-soft) !important;
+  padding: 0 var(--space-3) !important;
+}
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6) var(--space-4);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  background: var(--color-surface);
+}
+.empty-emoji { font-size: 2.5rem; }
+.empty-title { font-weight: 600; color: var(--color-text); }
+.empty-subtitle { color: var(--color-text-muted); font-size: 0.9375rem; max-width: 32ch; }

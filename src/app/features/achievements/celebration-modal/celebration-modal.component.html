@@ -1,0 +1,26 @@
+<p-dialog
+  [(visible)]="visible"
+  modal="modal"
+  [dismissableMask]="true"
+  [closeOnEscape]="true"
+  [showHeader]="false"
+  [style]="{ width: '90vw', maxWidth: '420px' }"
+  styleClass="celebration-dialog"
+  (onHide)="onClose()"
+>
+  <div class="celebration-content">
+    <span class="celebration-emoji" aria-hidden="true">🎉</span>
+    <h2 class="celebration-title">Mandou bem!</h2>
+
+    <div class="gif-slot">
+      <img *ngIf="gifUrl" [src]="gifUrl" alt="GIF de celebração" class="celebration-gif" />
+      <div *ngIf="!gifUrl" class="gif-placeholder">
+        <p-progressSpinner strokeWidth="4" [style]="{ width: '2rem', height: '2rem' }"></p-progressSpinner>
+      </div>
+    </div>
+
+    <p class="celebration-phrase" [class.celebration-phrase--updated]="phraseFromAi">{{ phrase }}</p>
+
+    <button pButton type="button" label="Continuar" class="continue-button" (click)="onClose()"></button>
+  </div>
+</p-dialog>

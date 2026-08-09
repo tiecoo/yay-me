@@ -1,0 +1,26 @@
+<div class="achievement-form">
+  <label class="form-label" for="achievement-input">Hoje eu consegui...</label>
+  <textarea
+    id="achievement-input"
+    pInputTextarea
+    rows="3"
+    [(ngModel)]="text"
+    [maxlength]="maxLength"
+    (keydown.control.enter)="save()"
+    (keydown.meta.enter)="save()"
+    placeholder="Ex.: terminei aquele relatório chato, fui na academia, liguei pra minha mãe..."
+    class="achievement-input"
+  ></textarea>
+  <div class="form-footer">
+    <span class="char-count" [class.char-count--limit]="remaining <= 20">{{ remaining }} caracteres restantes</span>
+    <button
+      pButton
+      type="button"
+      label="Salvar conquista"
+      icon="pi pi-check"
+      class="save-button"
+      (click)="save()"
+      [disabled]="!text.trim()"
+    ></button>
+  </div>
+</div>
