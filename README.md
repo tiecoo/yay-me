@@ -45,12 +45,14 @@ Projeto criado para aprender mais sobre IA e agentes.
 - O token `HF_TOKEN` fica **apenas no servidor** (variável de ambiente do
   site no Netlify) — nunca é incluído no bundle publicado, ao contrário
   da `GIPHY_API_KEY` que já é client-side hoje.
-- Enquanto espera a resposta da IA, o modal mostra um GIF de "aguarde"
-  (categoria própria no GIPHY, com fallback local) em vez de só um
-  spinner — mantém o clima divertido também durante o carregamento.
+- O modal **não espera a IA pra celebrar**: abre na hora com um GIF e
+  uma frase da lista estática já existente, e só troca a frase pela
+  piadinha personalizada da IA quando (e se) ela chegar, sem travar nem
+  atrasar a experiência — a resposta da IA é sempre um "upgrade", nunca
+  um bloqueio.
 - Se o token não estiver configurado, a IA falhar ou demorar mais de 8s,
-  o app cai automaticamente na lista estática de frases já existente
-  (`motivational-phrases.ts`) e a conquista fica sem tags — nenhuma
+  o app simplesmente mantém a frase estática que já estava mostrando e a
+  conquista fica sem tags — nenhuma
   funcionalidade fica bloqueada.
 - **Configuração necessária:** criar um token em
   [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)

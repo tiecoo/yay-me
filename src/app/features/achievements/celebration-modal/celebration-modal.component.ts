@@ -25,19 +25,16 @@ import { GifService } from '../../../core/services/gif.service';
       <div class="celebration-content">
         <span class="celebration-emoji" aria-hidden="true">🎉</span>
         <h2 class="celebration-title">Mandou bem!</h2>
-        <ng-container *ngIf="gifUrl && phrase; else loading">
-          <img [src]="gifUrl" alt="GIF de celebração" class="celebration-gif" />
-          <p class="celebration-phrase">{{ phrase }}</p>
-        </ng-container>
-        <ng-template #loading>
-          <div class="loading-state">
-            <img *ngIf="loadingGifUrl; else loadingSpinner" [src]="loadingGifUrl" alt="Aguardando" class="loading-gif" />
-            <ng-template #loadingSpinner>
-              <p-progressSpinner strokeWidth="4" [style]="{ width: '2.5rem', height: '2.5rem' }"></p-progressSpinner>
-            </ng-template>
-            <p>Preparando sua celebração...</p>
+
+        <div class="gif-slot">
+          <img *ngIf="gifUrl" [src]="gifUrl" alt="GIF de celebração" class="celebration-gif" />
+          <div *ngIf="!gifUrl" class="gif-placeholder">
+            <p-progressSpinner strokeWidth="4" [style]="{ width: '2rem', height: '2rem' }"></p-progressSpinner>
           </div>
-        </ng-template>
+        </div>
+
+        <p class="celebration-phrase" [class.celebration-phrase--updated]="phraseFromAi">{{ phrase }}</p>
+
         <button pButton type="button" label="Continuar" class="continue-button" (click)="onClose()"></button>
       </div>
     </p-dialog>
@@ -53,12 +50,22 @@ import { GifService } from '../../../core/services/gif.service';
     }
     .celebration-emoji { font-size: 2.5rem; animation: pop 0.35s ease; }
     .celebration-title { font-size: 1.25rem; font-weight: 700; color: var(--color-text); }
+    .gif-slot { width: 100%; }
     .celebration-gif {
       width: 100%;
       border-radius: var(--radius-md);
       max-height: 280px;
       object-fit: cover;
       box-shadow: var(--shadow-sm);
+      animation: pop 0.25s ease;
+    }
+    .gif-placeholder {
+      width: 100%;
+      height: 160px;
+      border-radius: var(--radius-md);
+      background: var(--color-primary-soft);
+      display: grid;
+      place-items: center;
     }
     .celebration-phrase {
       margin: 0;
@@ -68,19 +75,18 @@ import { GifService } from '../../../core/services/gif.service';
       background: var(--color-primary-soft);
       padding: var(--space-2) var(--space-4);
       border-radius: var(--radius-full);
+      transition: background-color 0.2s ease;
     }
-    .loading-state { display: grid; gap: var(--space-3); justify-items: center; padding: var(--space-4) 0; color: var(--color-text-muted); }
-    .loading-gif {
-      width: 100%;
-      border-radius: var(--radius-md);
-      max-height: 200px;
-      object-fit: cover;
-      box-shadow: var(--shadow-sm);
-    }
+    .celebration-phrase--updated { animation: pulse 0.4s ease; }
     .continue-button { width: 100%; margin-top: var(--space-2); }
     @keyframes pop {
       0% { transform: scale(0.5); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.04); }
+      100% { transform: scale(1); }
     }
     `
   ]
@@ -88,8 +94,8 @@ import { GifService } from '../../../core/services/gif.service';
 export class CelebrationModalComponent {
   public visible = false;
   public gifUrl: string | null = null;
-  public loadingGifUrl: string | null = null;
-  public phrase: string | null = null;
+  public phrase = '';
+  public phraseFromAi = false;
 
   constructor(
     private gifService: GifService,
@@ -100,19 +106,19 @@ export class CelebrationModalComponent {
   public open(achievementId: string, achievementText: string): void {
     this.visible = true;
     this.gifUrl = null;
-    this.loadingGifUrl = null;
-    this.phrase = null;
-
-    this.gifService.getRandomLoadingGif().subscribe(url => {
-      this.loadingGifUrl = url;
-    });
+    this.phraseFromAi = false;
+    // Mostra uma celebração completa na hora — a IA só "upgrada" a frase depois, sem travar o modal.
+    this.phrase = this.celebrationPhraseService.getInstantPhrase();
 
     this.gifService.getRandomCelebrationGif().subscribe(url => {
       this.gifUrl = url;
     });
 
     this.celebrationPhraseService.getCelebrationInsights(achievementText).subscribe(({ phrase, tags }) => {
-      this.phrase = phrase;
+      if (phrase) {
+        this.phrase = phrase;
+        this.phraseFromAi = true;
+      }
       this.achievementService.updateTags(achievementId, tags);
     });
   }
