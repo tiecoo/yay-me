@@ -3,4 +3,5 @@ export interface Achievement {
   text: string;
   createdAt: string;
   tags?: string[];
+  categoryId?: string | null;
 }
