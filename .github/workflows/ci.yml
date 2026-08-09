@@ -27,7 +27,6 @@ jobs:
       - name: Build application
         env:
           GIPHY_API_KEY: ${{ secrets.GIPHY_API_KEY }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GIT_SHA: ${{ env.GIT_SHA }}
           GIT_BRANCH: ${{ env.GIT_BRANCH }}
           BUILD_DATE: ${{ env.BUILD_DATE }}

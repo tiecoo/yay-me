@@ -1,86 +1,67 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, firstValueFrom } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { Achievement } from '../../shared/models/achievement.model';
 
-const LEGACY_STORAGE_KEY = 'yay-me:achievements';
-const LEGACY_IMPORTED_FLAG_KEY = 'yay-me:legacy-imported';
-
-interface LegacyItem {
-  legacyId: string;
-  text: string;
-  createdAt: string;
-  tags: string[];
-}
+const STORAGE_KEY = 'yay-me:achievements';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AchievementService {
-  private achievementsSubject = new BehaviorSubject<Achievement[]>([]);
+  private achievementsSubject = new BehaviorSubject<Achievement[]>(this.loadAchievements());
   public achievements$: Observable<Achievement[]> = this.achievementsSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
-
-  /** Carrega as conquistas do usuário logado. Chamado pelo AppComponent após login/bootstrap. */
-  public load(): void {
-    this.http.get<{ achievements: Achievement[] }>('/api/achievements').subscribe({
-      next: response => this.achievementsSubject.next(response.achievements),
-      error: () => this.achievementsSubject.next([])
-    });
+  private loadAchievements(): Achievement[] {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (!stored) {
+        return [];
+      }
+      const parsed = JSON.parse(stored);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      console.error('Failed to load achievements from localStorage:', error);
+      return [];
+    }
   }
 
-  /** Limpa o estado em memória no logout — os dados continuam no servidor. */
-  public reset(): void {
-    this.achievementsSubject.next([]);
+  private saveAchievements(achievements: Achievement[]): void {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(achievements));
+    this.achievementsSubject.next(achievements);
   }
 
-  public async addAchievement(text: string, categoryId: string | null = null): Promise<Achievement | null> {
+  public addAchievement(text: string): Achievement | null {
     const trimmed = text.trim();
     if (!trimmed) {
       return null;
     }
 
-    const response = await firstValueFrom(
-      this.http.post<{ achievement: Achievement }>('/api/achievements', { text: trimmed, categoryId })
-    );
+    const achievement: Achievement = {
+      id: self.crypto.randomUUID(),
+      text: trimmed,
+      createdAt: new Date().toISOString()
+    };
 
-    this.achievementsSubject.next([response.achievement, ...this.achievementsSubject.value]);
-    return response.achievement;
+    const nextState = [achievement, ...this.achievementsSubject.value];
+    this.saveAchievements(nextState);
+    return achievement;
   }
 
   public deleteAchievement(id: string): void {
-    const previous = this.achievementsSubject.value;
-    const nextState = previous.filter(item => item.id !== id);
-    if (nextState.length === previous.length) {
+    const nextState = this.achievementsSubject.value.filter(item => item.id !== id);
+    if (nextState.length === this.achievementsSubject.value.length) {
       return;
     }
-
-    this.achievementsSubject.next(nextState);
-    this.http.delete(`/api/achievements/${id}`).subscribe({
-      error: () => this.achievementsSubject.next(previous)
-    });
+    this.saveAchievements(nextState);
   }
 
   public updateTags(id: string, tags: string[]): void {
     if (!tags.length) {
       return;
     }
-    this.patchAchievement(id, { tags });
-  }
 
-  public updateCategory(id: string, categoryId: string | null): void {
-    this.patchAchievement(id, { categoryId });
-  }
-
-  private patchAchievement(id: string, patch: { tags?: string[]; categoryId?: string | null }): void {
-    const previous = this.achievementsSubject.value;
-    const nextState = previous.map(item => (item.id === id ? { ...item, ...patch } : item));
-    this.achievementsSubject.next(nextState);
-
-    this.http.patch(`/api/achievements/${id}`, patch).subscribe({
-      error: () => this.achievementsSubject.next(previous)
-    });
+    const nextState = this.achievementsSubject.value.map(item => (item.id === id ? { ...item, tags } : item));
+    this.saveAchievements(nextState);
   }
 
   public exportBackup(): void {
@@ -109,67 +90,17 @@ export class AchievementService {
       throw new Error('O arquivo tem itens em formato inválido.');
     }
 
-    const items: LegacyItem[] = incoming.map(item => ({
-      legacyId: item.id,
-      text: item.text,
-      createdAt: item.createdAt,
-      tags: item.tags ?? []
-    }));
+    const existingIds = new Set(this.achievementsSubject.value.map(item => item.id));
+    const newOnes = incoming.filter(item => !existingIds.has(item.id));
 
-    const result = await this.bulkImport(items);
-    this.load();
-    return result;
-  }
-
-  /** Verdadeiro quando há conquistas antigas no localStorage deste navegador ainda não importadas para a conta. */
-  public hasPendingLegacyImport(): boolean {
-    if (localStorage.getItem(LEGACY_IMPORTED_FLAG_KEY)) {
-      return false;
+    if (newOnes.length) {
+      const nextState = [...this.achievementsSubject.value, ...newOnes].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      this.saveAchievements(nextState);
     }
-    return this.readLegacyLocalAchievements().length > 0;
-  }
 
-  public countPendingLegacyItems(): number {
-    return this.readLegacyLocalAchievements().length;
-  }
-
-  public async importLegacyLocalAchievements(): Promise<{ imported: number; skipped: number }> {
-    const legacyItems = this.readLegacyLocalAchievements();
-    const items: LegacyItem[] = legacyItems.map(item => ({
-      legacyId: item.id,
-      text: item.text,
-      createdAt: item.createdAt,
-      tags: item.tags ?? []
-    }));
-
-    const result = await this.bulkImport(items);
-    localStorage.setItem(LEGACY_IMPORTED_FLAG_KEY, 'true');
-    this.load();
-    return result;
-  }
-
-  public dismissLegacyImport(): void {
-    localStorage.setItem(LEGACY_IMPORTED_FLAG_KEY, 'true');
-  }
-
-  private bulkImport(items: LegacyItem[]): Promise<{ imported: number; skipped: number }> {
-    if (!items.length) {
-      return Promise.resolve({ imported: 0, skipped: 0 });
-    }
-    return firstValueFrom(this.http.post<{ imported: number; skipped: number }>('/api/achievements/import', { items }));
-  }
-
-  private readLegacyLocalAchievements(): Achievement[] {
-    try {
-      const stored = localStorage.getItem(LEGACY_STORAGE_KEY);
-      if (!stored) {
-        return [];
-      }
-      const parsed = JSON.parse(stored);
-      return Array.isArray(parsed) ? parsed.filter(this.isValidAchievement) : [];
-    } catch {
-      return [];
-    }
+    return { imported: newOnes.length, skipped: incoming.length - newOnes.length };
   }
 
   private isValidAchievement(value: unknown): value is Achievement {
