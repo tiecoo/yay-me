@@ -62,18 +62,20 @@ Projeto criado para aprender mais sobre IA e agentes.
 ## 📈 Monitoramento (New Relic Browser)
 
 - O agente do New Relic é inicializado em `src/main.ts` (não em
-  `index.html`) — a configuração (`NREUM.info`, com a license key já
-  resolvida do build) é montada **antes** do `<script>` do agente ser
-  criado e inserido no `<head>`, evitando o bug anterior de o agente
+  `index.html`) — `NREUM.loader_config` e `NREUM.info` (com a license key
+  já resolvida do build) são montados **antes** do `<script>` do agente
+  ser criado e inserido no `<head>`, evitando o bug anterior de o agente
   carregar antes da chave estar disponível (a chave sempre chegava vazia).
 - Variáveis necessárias no Netlify (Site settings → Environment
-  variables), mesmo padrão do `GIPHY_API_KEY`/`HF_TOKEN`:
-  - `NEW_RELIC_LICENSE_KEY` (já configurada)
-  - `NEW_RELIC_APPLICATION_ID` — **pendente**: pegue em New Relic →
-    Browser → (o app) → Application settings → "Application ID", e
-    cadastre com esse nome. Sem ela, o agente carrega mas o New Relic
-    pode não conseguir associar os dados a uma aplicação Browser
-    específica.
+  variables), mesmo padrão do `GIPHY_API_KEY`/`HF_TOKEN` — todas já
+  configuradas exceto onde indicado:
+  - `NEW_RELIC_LICENSE_KEY` — a **license key específica de Browser**
+    (formato `NRJS-...`), não a license key geral de ingest/APM da conta.
+  - `NEW_RELIC_APPLICATION_ID`, `NEW_RELIC_ACCOUNT_ID`, `NEW_RELIC_TRUST_KEY`
+  - `NEW_RELIC_AGENT_ID` — **pendente**: mesmo valor do Application ID
+    nesta conta. Pegue em New Relic → Browser → (o app) → Application
+    settings → "Copy/Paste JavaScript code", no objeto
+    `NREUM.loader_config`.
 - Sem `NEW_RELIC_LICENSE_KEY` configurada (ex.: build local/dev), o
   agente simplesmente não é carregado — nenhum erro, nenhuma chamada de
   rede desnecessária.
