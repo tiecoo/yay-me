@@ -63,4 +63,55 @@ export class AchievementService {
     const nextState = this.achievementsSubject.value.map(item => (item.id === id ? { ...item, tags } : item));
     this.saveAchievements(nextState);
   }
+
+  public exportBackup(): void {
+    const json = JSON.stringify(this.achievementsSubject.value, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const date = new Date().toISOString().slice(0, 10);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `yay-me-backup-${date}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  public async importBackup(file: File): Promise<{ imported: number; skipped: number }> {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+
+    if (!Array.isArray(parsed)) {
+      throw new Error('O arquivo não contém uma lista de conquistas.');
+    }
+
+    const incoming = parsed.filter(this.isValidAchievement);
+    if (incoming.length !== parsed.length) {
+      throw new Error('O arquivo tem itens em formato inválido.');
+    }
+
+    const existingIds = new Set(this.achievementsSubject.value.map(item => item.id));
+    const newOnes = incoming.filter(item => !existingIds.has(item.id));
+
+    if (newOnes.length) {
+      const nextState = [...this.achievementsSubject.value, ...newOnes].sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      this.saveAchievements(nextState);
+    }
+
+    return { imported: newOnes.length, skipped: incoming.length - newOnes.length };
+  }
+
+  private isValidAchievement(value: unknown): value is Achievement {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+    const candidate = value as Record<string, unknown>;
+    return (
+      typeof candidate['id'] === 'string' &&
+      typeof candidate['text'] === 'string' &&
+      typeof candidate['createdAt'] === 'string'
+    );
+  }
 }

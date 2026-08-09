@@ -3,13 +3,22 @@ import { CommonModule } from '@angular/common';
 import { AchievementFormComponent } from './features/achievements/achievement-form/achievement-form.component';
 import { AchievementListComponent } from './features/achievements/achievement-list/achievement-list.component';
 import { CelebrationModalComponent } from './features/achievements/celebration-modal/celebration-modal.component';
+import { StatsDashboardComponent } from './features/achievements/stats-dashboard/stats-dashboard.component';
+import { BackupControlsComponent } from './features/achievements/backup-controls/backup-controls.component';
 import { AchievementService } from './core/services/achievement.service';
 import { NotificationService } from './core/services/notification.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, AchievementFormComponent, AchievementListComponent, CelebrationModalComponent],
+  imports: [
+    CommonModule,
+    AchievementFormComponent,
+    AchievementListComponent,
+    CelebrationModalComponent,
+    StatsDashboardComponent,
+    BackupControlsComponent
+  ],
   template: `
     <header class="app-bar">
       <div class="app-bar-inner">
@@ -22,6 +31,8 @@ import { NotificationService } from './core/services/notification.service';
     </header>
 
     <main class="app-shell">
+      <app-stats-dashboard></app-stats-dashboard>
+
       <section class="form-section">
         <app-achievement-form (saved)="onSaved($event)"></app-achievement-form>
       </section>
@@ -29,6 +40,8 @@ import { NotificationService } from './core/services/notification.service';
       <section class="list-section">
         <app-achievement-list></app-achievement-list>
       </section>
+
+      <app-backup-controls></app-backup-controls>
     </main>
 
     <app-celebration-modal #celebrationModal></app-celebration-modal>

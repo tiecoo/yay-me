@@ -17,6 +17,7 @@ Projeto criado para aprender mais sobre IA e agentes.
   - `0000-template.md`: Template padrão reutilizável para novos SDDs.
   - `0001-yay-me-arquitetura-inicial.md`: SDD oficial da arquitetura da aplicação (Angular, PrimeNG, Netlify, GIPHY).
   - `0002-celebracao-com-ia.md`: SDD da frase de celebração gerada por IA (Claude + Netlify Function).
+  - `0003-streak-e-backup-local.md`: SDD do dashboard de streak/estatísticas e do backup local (exportar/importar).
 - `netlify/functions/celebrate-phrase.js`: Netlify Function que gera a frase de celebração com Claude, mantendo a chave de API fora do bundle do cliente.
 - `AGENTS.md`: Diretrizes e convenções para desenvolvimento e agentes de IA.
 
@@ -71,14 +72,37 @@ Projeto criado para aprender mais sobre IA e agentes.
   configuradas exceto onde indicado:
   - `NEW_RELIC_LICENSE_KEY` — a **license key específica de Browser**
     (formato `NRJS-...`), não a license key geral de ingest/APM da conta.
-  - `NEW_RELIC_APPLICATION_ID`, `NEW_RELIC_ACCOUNT_ID`, `NEW_RELIC_TRUST_KEY`
-  - `NEW_RELIC_AGENT_ID` — **pendente**: mesmo valor do Application ID
-    nesta conta. Pegue em New Relic → Browser → (o app) → Application
-    settings → "Copy/Paste JavaScript code", no objeto
-    `NREUM.loader_config`.
+  - `NEW_RELIC_APPLICATION_ID`, `NEW_RELIC_ACCOUNT_ID`, `NEW_RELIC_TRUST_KEY`,
+    `NEW_RELIC_AGENT_ID` (todas configuradas)
 - Sem `NEW_RELIC_LICENSE_KEY` configurada (ex.: build local/dev), o
   agente simplesmente não é carregado — nenhum erro, nenhuma chamada de
   rede desnecessária.
+
+## 🔥 Streak e estatísticas
+
+- Dashboard no topo do app, no estilo de "complicações" de relógio de
+  saúde: um anel circular central com a **sequência atual de dias
+  seguidos** (progresso visual até 7 dias) e dois indicadores menores ao
+  lado com o **recorde de sequência** e o **total de conquistas**.
+  Fica escondido enquanto não há nenhuma conquista registrada.
+- Cálculo em `src/app/core/services/streak.util.ts`
+  (`computeStreakStats`), puro e testável: agrupa conquistas por dia
+  (fuso local), soma dias consecutivos a partir de hoje — se hoje ainda
+  não tem registro, a sequência continua "viva" contando a partir de
+  ontem, só quebra depois de um dia inteiro sem nada.
+
+## 💾 Backup local (exportar/importar)
+
+- Como os dados vivem só no `localStorage` do navegador, limpar o cache
+  ou reinstalar o PWA apaga o histórico pra sempre — os botões
+  **"Exportar backup"** e **"Importar backup"** (rodapé do app) resolvem
+  isso sem precisar de nenhum servidor: exporta um `.json` com todas as
+  conquistas, e importa mesclando pelo `id` (nunca sobrescreve o que já
+  existe, nunca duplica ao reimportar o mesmo arquivo).
+- Implementado em `AchievementService.exportBackup()` /
+  `importBackup()`; validação de formato antes de gravar qualquer coisa
+  no `localStorage` — arquivo inválido mostra erro e não mexe nos dados
+  existentes.
 
 ## 📐 Convenção para SDDs
 
