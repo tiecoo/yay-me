@@ -11,21 +11,13 @@ export class GifService {
   constructor(private http: HttpClient) {}
 
   public getRandomCelebrationGif() {
-    return this.getRandomGifByTag('celebration');
-  }
-
-  public getRandomLoadingGif() {
-    return this.getRandomGifByTag('waiting');
-  }
-
-  private getRandomGifByTag(tag: string) {
     if (!environment.giphyApiKey) {
       return of(this.getLocalFallbackGif());
     }
 
     const params = {
       api_key: environment.giphyApiKey,
-      tag,
+      tag: 'celebration',
       rating: 'pg'
     };
 

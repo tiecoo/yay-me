@@ -92,11 +92,14 @@ graph TD
 - `netlify.toml`: declara `build.command`, `build.publish` e
   `functions.directory = "netlify/functions"`.
 - `src/app/core/services/celebration-phrase.service.ts`: expõe
-  `getCelebrationInsights(text): Observable<{ phrase, tags }>`, chamando
-  a function via `HttpClient` com `timeout(5000)` e `catchError`,
-  caindo para `{ phrase: <sorteio de MOTIVATIONAL_PHRASES>, tags: [] }`
-  em qualquer falha — mesmo padrão de resiliência já usado pelo
-  `GifService`.
+  duas funções: `getInstantPhrase()` (síncrona, sorteia
+  `MOTIVATIONAL_PHRASES` na hora, sem rede) e
+  `getCelebrationInsights(text): Observable<{ phrase: string | null, tags }>`,
+  que chama a function via `HttpClient` com `timeout(8000)` — acima do
+  timeout interno da function (6000ms), senão o cliente desiste antes
+  dela terminar — e em qualquer falha/timeout devolve
+  `{ phrase: null, tags: [] }` (nunca sorteia outra frase por conta
+  própria; `phrase: null` é um sinal pro chamador de "não mude nada").
 - `src/app/shared/models/achievement.model.ts`: `Achievement` ganha
   `tags?: string[]`.
 - `src/app/core/services/achievement.service.ts`: novo
@@ -104,12 +107,20 @@ graph TD
   persiste; no-op se `tags` vier vazio (evita escrita desnecessária no
   `localStorage` quando a IA não retornou tags).
 - `celebration-modal.component.ts`: `open(achievementId, achievementText)`
-  passa a receber também o `id` da conquista já salva; dispara
-  `GifService` e `CelebrationPhraseService` em paralelo; ao resolver a
-  frase, chama `AchievementService.updateTags(achievementId, tags)` para
-  "enriquecer" a conquista já persistida assim que as tags chegam. O
-  loading do modal aguarda GIF + frase (`*ngIf="gifUrl && phrase"`) — as
-  tags chegam de forma independente e não bloqueiam o modal.
+  passa a receber também o `id` da conquista já salva. **O modal não
+  espera a IA pra celebrar**: abre com `phrase = getInstantPhrase()`
+  (na hora) e dispara `GifService`/`CelebrationPhraseService` em
+  paralelo, sem nenhum `*ngIf` bloqueando o conteúdo por causa deles —
+  só o GIF tem um placeholder curto (spinner, ≤2s, timeout já embutido
+  no `GifService`) enquanto carrega. Quando a IA responde com uma frase
+  real, ela **substitui** a frase instantânea (com uma pequena animação
+  de destaque) e as tags são aplicadas via
+  `AchievementService.updateTags`; se a IA falhar/demorar, a frase
+  instantânea permanece como está — nunca há um segundo sorteio
+  aleatório "por baixo". Essa é uma correção de UX: a versão anterior
+  bloqueava o modal inteiro (`*ngIf="gifUrl && phrase"`) até a IA
+  responder, o que podia levar até 8s — o oposto de "celebração
+  instantânea" (PRD, NFR-1).
 - `app.component.ts`: `onSaved(text)` salva a conquista primeiro (fica
   visível na lista imediatamente, sem esperar IA) e abre o modal
   passando `achievement.id` e `achievement.text`.
